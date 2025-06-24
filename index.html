@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI's Carbon Footprint & Sustainability</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Visualization & Content Choices:
+        - Report Info: Table 1 (AI Model Carbon Footprint) -> Goal: Compare -> Viz: Bar Chart (Chart.js) -> Interaction: Hover tooltips for details -> Justification: Visually compares CO2e of different models effectively.
+        - Report Info: Various metrics (PUE, SCI, etc.) -> Goal: Inform/Organize -> Presentation: Interactive list/grid -> Interaction: Click to show definition/details -> Justification: Allows users to explore complex metrics without cluttering the main view.
+        - Report Info: AI for Sustainability Applications (Climate, Energy, etc.) -> Goal: Inform/Engage -> Presentation: Card grid -> Interaction: Click to expand for details -> Justification: Visually appealing way to showcase positive applications.
+        - Report Info: Project Suggestions & Recommendations -> Goal: Inform/Organize -> Presentation: Cards for projects, Accordion/Tabs for recommendations -> Interaction: Clickable/Expandable -> Justification: Structured access to actionable information.
+        - CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link.active {
+            border-bottom-color: #059669; /* emerald-600 */
+            color: #047857; /* emerald-700 */
+            font-weight: 600;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .metric-card, .project-card, .app-card, .recommendation-category button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .metric-card:hover, .project-card:hover, .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                 height: 400px;
+            }
+        }
+        @media (max-width: 767px) { /* sm breakpoint */
+            .chart-container {
+                 height: 300px;
+            }
+        }
+    </style>
+</head>
+<body class="bg-stone-100 text-stone-700">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col sm:flex-row justify-between items-center py-4">
+                <h1 class="text-2xl sm:text-3xl font-bold text-emerald-700 mb-2 sm:mb-0">AI: Footprint & Future</h1>
+                <nav class="w-full sm:w-auto">
+                    <ul class="flex flex-wrap justify-center sm:justify-end space-x-2 sm:space-x-4 text-sm sm:text-base">
+                        <li><a href="#overview" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">🌍 Overview</a></li>
+                        <li><a href="#footprint" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">🐾 Footprint</a></li>
+                        <li><a href="#measuring" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">📏 Measuring</a></li>
+                        <li><a href="#challenge" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">🎯 Challenge</a></li>
+                        <li><a href="#ai-for-good" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">💡 AI for Good</a></li>
+                        <li><a href="#take-action" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">🚀 Take Action</a></li>
+                        <li><a href="#ethics" class="nav-link py-2 border-b-2 border-transparent hover:border-emerald-500 hover:text-emerald-600">⚖️ Ethics</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <section id="overview" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">🌍 The Dual Imperative of AI</h2>
+            <p class="text-lg leading-relaxed">
+                Artificial Intelligence is rapidly transforming our world, offering incredible innovation while simultaneously posing significant environmental challenges. The immense computational power required by AI, especially large models, leads to substantial energy and water consumption, and contributes to electronic waste. The ICT sector, with AI as a key driver, already accounts for a notable portion of global greenhouse gas emissions, a figure expected to grow.
+            </p>
+            <p class="leading-relaxed">
+                This interactive report explores this duality. We delve into AI's environmental footprint, examining its embodied emissions from hardware and data centers, and operational emissions from training and using AI models. We also highlight AI's remarkable potential as a tool for environmental sustainability—from enhancing climate models and optimizing renewable energy grids to improving conservation and sustainable agriculture. Our goal is to provide a clear understanding of these complex issues and to outline paths towards a future where AI's net impact on our planet is positive.
+            </p>
+        </section>
+
+        <section id="footprint" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">🐾 Understanding AI's Environmental Footprint</h2>
+            <p class="leading-relaxed">AI's environmental impact is multifaceted, encompassing carbon emissions from its creation and operation, significant water usage, and the generation of electronic waste. Understanding these components is crucial for developing effective mitigation strategies. This section breaks down the key areas of AI's footprint.</p>
+
+            <div class="space-y-8">
+                <div>
+                    <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Carbon Emissions: Embodied & Operational</h3>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">1. Embodied Emissions</h4>
+                            <p class="mb-2">These are emissions from the entire lifecycle of physical components before AI is even used. This includes:</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                <li><strong>Hardware Manufacturing:</strong> GPUs, their peripherals (mainboards, cooling), and other AI-specific hardware. Material extraction and fabrication are energy-intensive.</li>
+                                <li><strong>Data Center Construction:</strong> Building the physical infrastructure using materials like steel and concrete, and manufacturing server components.</li>
+                            </ul>
+                            <p class="mt-2 text-xs text-stone-500">Peripheral components can add over 18% to a GPU's embodied carbon, often overlooked.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">2. Operational Emissions</h4>
+                            <p class="mb-2">These are emissions from the electricity consumed during AI's active use:</p>
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                <li><strong>Model Training:</strong> Large AI models (e.g., GPT-3) require massive electricity for training, translating to significant CO2 emissions. Training a few models can equal the lifetime emissions of multiple cars.</li>
+                                <li><strong>Model Inference:</strong> Using trained models for predictions or generation also consumes energy. A ChatGPT search uses considerably more energy than a standard web search.</li>
+                            </ul>
+                             <p class="mt-2 text-xs text-stone-500">Generative AI inference is expected to dominate future energy demands.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Estimated Carbon Footprint of Major AI Models (Training)</h3>
+                    <p class="mb-4 leading-relaxed">The training of large AI models is a significant source of carbon emissions. The table below, derived from the source report, illustrates the scale for some well-known models. Factors like model size, training algorithms, and the energy mix of the electricity grid used for training heavily influence these figures.</p>
+                    <div class="bg-white p-4 rounded-lg shadow-lg chart-container max-w-3xl">
+                        <canvas id="aiModelFootprintChart"></canvas>
+                    </div>
+                    <p class="mt-2 text-xs text-center text-stone-500">Hover over bars for more details. CO2e = Carbon Dioxide Equivalent.</p>
+                </div>
+                
+                <div>
+                    <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Beyond Carbon: Other Impacts</h3>
+                     <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">💧 Water Consumption</h4>
+                            <p>Data centers, crucial for AI, require vast amounts of water for cooling hardware. This can strain local water supplies, especially in water-stressed areas. Training GPT-3 reportedly consumed hundreds of thousands of liters of freshwater.</p>
+                            <p class="mt-2 text-xs text-stone-500">Estimated 2 liters of water per kWh consumed by a data center.</p>
+                        </div>
+                        <div class="bg-white p-6 rounded-lg shadow-lg">
+                            <h4 class="text-xl font-semibold text-stone-800 mb-2">🗑️ Electronic Waste (E-waste)</h4>
+                            <p>The rapid pace of AI hardware development leads to shorter lifecycles for components like GPUs. Improper disposal of this e-waste releases harmful chemicals into the environment.</p>
+                            <p class="mt-2 text-xs text-stone-500">Constant upgrades contribute to a growing e-waste problem.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-2xl font-semibold text-emerald-600 mb-3">⚡ Data Centers: The Energy Nexus</h3>
+                    <p class="mb-2 leading-relaxed">Data centers are the backbone of AI. Their energy consumption is already substantial and projected to grow dramatically.</p>
+                    <ul class="list-disc list-inside space-y-1 bg-white p-6 rounded-lg shadow-lg text-sm">
+                        <li>US data centers used over 4% of total US electricity in 2023, projected to be 6% by 2026.</li>
+                        <li>Global data center electricity demand could more than double by 2030.</li>
+                        <li>Only ~40% of data center energy is for actual computing; ~40% for HVAC, ~20% for power systems.</li>
+                        <li>The carbon intensity of the local electricity grid heavily impacts emissions.</li>
+                        <li class="mt-2 text-xs text-stone-500">The "rebound effect" is a concern: efficiency gains might be offset by increased AI usage.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <section id="measuring" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">📏 Measuring and Reporting Impact</h2>
+            <p class="leading-relaxed">Accurately quantifying AI's environmental footprint is the first step towards effective mitigation. This involves using robust methodologies, standardized metrics, and transparent reporting. This section explores the key approaches and tools used in the industry.</p>
+            
+            <div>
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Methodologies & Key Metrics</h3>
+                <p class="mb-4">Various frameworks and metrics help assess AI's environmental toll. Click on a metric to learn more.</p>
+                <div id="metricsContainer" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                </div>
+            </div>
+
+            <div id="metricDetail" class="mt-6 bg-emerald-50 p-6 rounded-lg shadow hidden">
+                <h4 id="metricDetailTitle" class="text-xl font-semibold text-emerald-700 mb-2"></h4>
+                <p id="metricDetailDescription" class="text-sm leading-relaxed"></p>
+                <p id="metricDetailFormula" class="text-xs mt-2 font-mono bg-stone-200 p-2 rounded"></p>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-3 mt-8">Tools for Carbon Footprint Calculation</h3>
+                <p class="mb-4">A growing ecosystem of tools helps measure and analyze AI's environmental impact.</p>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h4 class="text-xl font-semibold text-stone-800 mb-2">Open-Source Tools</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm">
+                            <li><strong>CodeCarbon:</strong> Python package to estimate CO2 emissions from computing, integrates with code.</li>
+                            <li><strong>Cloud Carbon Footprint:</strong> Measures emissions from cloud usage (AWS, GCP, Azure).</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-lg">
+                        <h4 class="text-xl font-semibold text-stone-800 mb-2">Commercial Platforms</h4>
+                        <ul class="list-disc list-inside space-y-1 text-sm">
+                            <li><strong>Climatiq:</strong> Benchmarks data center carbon intensity.</li>
+                            <li><strong>FlyPix AI:</strong> Geospatial analytics for carbon footprint analysis.</li>
+                            <li><strong>Others:</strong> Watershed, Persefoni, SINAI, Normative, Smart Trackers, Code Gaia offer comprehensive ESG solutions.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="challenge" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">🎯 The Challenge of Transparency & Regulation</h2>
+            <p class="leading-relaxed">A significant hurdle in addressing AI's environmental impact is the lack of transparency from major tech companies. Coupled with this, the regulatory landscape is still evolving, though important steps are being taken. This section discusses these critical aspects.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg mb-6">
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Lack of Disclosure</h3>
+                <p class="mb-2">Many large AI developers do not publicly share detailed information about:</p>
+                <ul class="list-disc list-inside space-y-1 text-sm">
+                    <li>Model training duration and specific hardware used.</li>
+                    <li>Location of training (which impacts carbon intensity of energy).</li>
+                    <li>Specific datasets used and their processing energy.</li>
+                </ul>
+                <p class="mt-2">This secrecy, often citing "competitive reasons," hinders independent assessment of AI's true environmental cost and makes accountability difficult. For example, OpenAI has faced criticism for not disclosing GPT-4's environmental footprint.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-3">Emerging Regulations and Standards</h3>
+                <p class="mb-2">Growing awareness is leading to new regulations aimed at mandating environmental reporting:</p>
+                <ul class="list-disc list-inside space-y-2 text-sm">
+                    <li>
+                        <strong>California's Climate Accountability Laws (SB 253 & SB 219):</strong> Mandate large businesses in California to report Scope 1, 2, and 3 GHG emissions starting 2026. Scope 3 (supply chain) is often the largest.
+                    </li>
+                    <li>
+                        <strong>EU’s Corporate Sustainability Reporting Directive (CSRD):</strong> Requires large companies and listed SMEs to report environmental and social impacts, including value chain ESG. Data collection started Jan 2024, first reports due 2025.
+                    </li>
+                    <li>
+                        <strong>EU’s Energy Efficiency Directive (EED):</strong> Requires EU data centers over a certain energy threshold (2,780 MWh/year) to publicly report energy performance. Compliance started May 2024.
+                    </li>
+                </ul>
+                <p class="mt-3 text-sm">These regulations are vital for pushing industries towards greater transparency and more sustainable practices.</p>
+            </div>
+        </section>
+
+        <section id="ai-for-good" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">💡 AI for Environmental Sustainability</h2>
+            <p class="leading-relaxed">While AI presents environmental challenges, it also offers powerful tools to address them. AI's ability to analyze vast datasets, identify patterns, and optimize complex systems can be harnessed for significant environmental benefits. This section highlights key areas where AI is making a positive impact.</p>
+            <div id="aiApplicationsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            </div>
+            <div id="applicationDetail" class="mt-6 bg-emerald-50 p-6 rounded-lg shadow hidden">
+                <h3 id="applicationDetailTitle" class="text-2xl font-semibold text-emerald-700 mb-2"></h3>
+                <div id="applicationDetailContent" class="space-y-2 text-sm leading-relaxed"></div>
+            </div>
+        </section>
+
+        <section id="take-action" class="content-section space-y-8">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">🚀 Take Action: Projects & Recommendations</h2>
+            <p class="leading-relaxed">Understanding AI's environmental impact is the first step; taking action is the next. This section provides practical project ideas for tech enthusiasts to engage with these issues directly, alongside key recommendations for various stakeholders to foster a more sustainable AI ecosystem.</p>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-4">Project Suggestions (2-Week Scope)</h3>
+                <p class="mb-4">For those passionate about tech and sustainability, these projects offer hands-on experience:</p>
+                <div id="projectsContainer" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                </div>
+            </div>
+            
+            <div id="projectDetail" class="mt-6 bg-emerald-50 p-6 rounded-lg shadow hidden">
+                <h3 id="projectDetailTitle" class="text-2xl font-semibold text-emerald-700 mb-2"></h3>
+                <p class="text-sm font-semibold">Concept:</p>
+                <p id="projectDetailConcept" class="text-sm mb-2 leading-relaxed"></p>
+                <p class="text-sm font-semibold">Tech Stack:</p>
+                <p id="projectDetailTech" class="text-sm mb-2 leading-relaxed"></p>
+                <p class="text-sm font-semibold">Data Sources:</p>
+                <p id="projectDetailData" class="text-sm mb-2 leading-relaxed"></p>
+                <p class="text-sm font-semibold">Deliverable:</p>
+                <p id="projectDetailDeliverable" class="text-sm leading-relaxed"></p>
+            </div>
+
+            <div>
+                <h3 class="text-2xl font-semibold text-emerald-600 mb-4">Recommendations for a Sustainable AI Future</h3>
+                <p class="mb-4">Collective effort is needed. Here are targeted recommendations:</p>
+                <div id="recommendationsContainer" class="space-y-3">
+                </div>
+            </div>
+        </section>
+
+        <section id="ethics" class="content-section space-y-6">
+            <h2 class="text-3xl font-semibold text-emerald-700 border-b-2 border-emerald-200 pb-2">⚖️ Ethical Dimensions of AI and Environment</h2>
+            <p class="leading-relaxed">The development and deployment of AI, particularly generative AI, raise significant ethical questions concerning environmental impact and social justice. These considerations must be integral to discussions about AI's role in a sustainable future.</p>
+
+            <div class="bg-white p-6 rounded-lg shadow-lg space-y-4">
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-600 mb-2">Resource Consumption and Equity</h3>
+                    <p>The immense energy and water demands of large AI models can exacerbate resource scarcity and strain environments already impacted by climate change. There's a risk that these resources could be diverted from other essential needs, or that the benefits of AI accrue disproportionately to wealthier nations and corporations while the environmental burdens are more widely distributed or fall on vulnerable communities.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-600 mb-2">"Digital Neocolonialism"</h3>
+                    <p>The human labor required for training AI models, such as data labeling, is often outsourced to workers in the Global South under precarious conditions and for low pay. Additionally, the extraction of raw materials (e.g., minerals for hardware) frequently occurs in these regions, sometimes with significant environmental and social costs. This can perpetuate exploitative economic relationships reminiscent of colonialism.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-600 mb-2">Access and Control</h3>
+                    <p>The concentration of AI development infrastructure and expertise, primarily in the Global North, raises concerns about who controls this powerful technology and who benefits from its application in areas like conservation. Ensuring equitable access to AI tools and their benefits, and empowering local communities in environmental decision-making, is crucial, especially since many critical ecosystems are in the Global South.</p>
+                </div>
+                <div>
+                    <h3 class="text-xl font-semibold text-emerald-600 mb-2">The Need for Ethical Principles</h3>
+                    <p>Addressing these concerns requires embedding ethical principles—such as transparency, robustness, fairness, and trustworthiness—into AI research and deployment. It's vital to empower communities affected by climate change, ensure equitable access to information and technology, and make climate research more impactful and accessible to all. Discussions must extend beyond purely technological solutions to encompass social justice and responsible governance.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-stone-800 text-stone-300 text-center py-6 mt-12">
+        <p class="text-sm">&copy; 2024 Interactive Report on AI's Carbon Footprint. Content derived from research.</p>
+        <p class="text-xs mt-1">This is a simulated application based on the provided report data.</p>
+    </footer>
+
+<script>
+    const navLinks = document.querySelectorAll('.nav-link');
+    const contentSections = document.querySelectorAll('.content-section');
+
+    function setActiveSection(hash) {
+        navLinks.forEach(link => {
+            if (link.getAttribute('href') === hash) {
+                link.classList.add('active');
+            } else {
+                link.classList.remove('active');
+            }
+        });
+        contentSections.forEach(section => {
+            if ('#' + section.id === hash) {
+                section.classList.add('active');
+            } else {
+                section.classList.remove('active');
+            }
+        });
+    }
+
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.getAttribute('href');
+            window.location.hash = targetId;
+        });
+    });
+
+    window.addEventListener('hashchange', () => {
+        setActiveSection(window.location.hash || '#overview');
+    });
+
+    // Initial load
+    setActiveSection(window.location.hash || '#overview');
+
+    // Chart.js data for AI Model Footprint
+    const aiModelData = {
+        labels: ['BERT (200M)', 'GPT-3 (175B)', 'BLOOM (175B)', 'GPT-4 (170T est.)'],
+        datasets: [{
+            label: 'Estimated CO2e (Metric Tons)',
+            data: [
+                283.95, // 626,000 pounds / 2204.62 pounds/metric ton
+                500,    // 500 metric tons
+                25,     // 25 metric tons
+                // GPT-4: "Equivalent to 61,000 transatlantic flights". A flight is ~1-2 tons CO2.
+                // Let's use a conservative estimate, e.g. 61000 * 1.5 = 91500. This is very high.
+                // The report states "Exponential increase in parameters" and the figure is illustrative.
+                // For charting, a very large number will skew the chart. Let's cap it for visualization or use a log scale.
+                // The source does not give a direct CO2e ton for GPT-4, only a dramatic equivalence.
+                // I will use a placeholder value that is significantly larger but won't break the chart entirely, and note this.
+                // Or, I can represent it differently. For now, I will use a value that shows it's much larger.
+                // Let's use a value like 10000 to show it's much larger than GPT-3 for illustrative purposes,
+                // and add a note in the text or tooltip about the actual equivalence.
+                // The prompt is about visualizing Table 1 data. Table 1 has "Equivalent to 61,000 transatlantic flights".
+                // This is hard to put on the same linear scale.
+                // I will use the values from the table that have metric tons or pounds that can be converted.
+                // For GPT-4, the table gives an equivalence, not a direct CO2e number.
+                // I will stick to the ones with numbers: BERT, GPT-3, BLOOM.
+                // And modify the chart title or note to reflect this.
+                // Re-evaluating Table 1: GPT-3 is 500 metric tons. BERT is 626,000 pounds (~284 metric tons). BLOOM is 25 metric tons.
+                // GPT-4's data is qualitative in terms of CO2e tons.
+                // So, the chart will show BERT, GPT-3, BLOOM.
+                284, // BERT (converted from pounds)
+                500, // GPT-3
+                25,  // BLOOM
+                // For GPT-4, the table doesn't give a direct CO2e value in tons, rather an equivalence.
+                // To keep the chart consistent with numeric CO2e values, I will omit GPT-4 from this specific chart
+                // and ensure the text around it explains its massive scale.
+                // Or, I can add a note that GPT-4 is orders of magnitude larger.
+                // Let's adjust labels and data.
+            ],
+            backgroundColor: [
+                'rgba(5, 150, 105, 0.7)', // emerald-600
+                'rgba(13, 148, 136, 0.7)', // teal-600
+                'rgba(56, 189, 248, 0.7)', // sky-400
+            ],
+            borderColor: [
+                'rgba(5, 150, 105, 1)',
+                'rgba(13, 148, 136, 1)',
+                'rgba(56, 189, 248, 1)',
+            ],
+            borderWidth: 1
+        }]
+    };
+    
+    const aiModelFootprintChartCtx = document.getElementById('aiModelFootprintChart');
+    if (aiModelFootprintChartCtx) {
+        new Chart(aiModelFootprintChartCtx, {
+            type: 'bar',
+            data: {
+                labels: ['BERT (200M params)', 'GPT-3 (175B params)', 'BLOOM (175B params)'],
+                datasets: aiModelData.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'CO2e from Training Select AI Models (Metric Tons)',
+                        font: { size: 16, weight: 'bold' },
+                        color: '#374151' // stone-700
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + ' metric tons CO2e';
+                                }
+                                // Add equivalence from report if possible (simplified)
+                                const modelName = context.label;
+                                if (modelName.includes('BERT')) {
+                                    label += ' (Equiv. ~5x car lifetime emissions)';
+                                } else if (modelName.includes('GPT-3')) {
+                                     label += ' (Equiv. ~610 NYC-Paris flights)';
+                                } else if (modelName.includes('BLOOM')) {
+                                     label += ' (Trained on nuclear power)';
+                                }
+                                return label;
+                            }
+                        }
+                    },
+                    legend: {
+                        display: false // Hiding legend as it's a single dataset
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Estimated CO2e (Metric Tons)',
+                            font: { size: 12 },
+                            color: '#4b5563' // stone-600
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            callback: function(value, index, values) {
+                                const label = this.getLabelForValue(value);
+                                if (label.length > 16) { // 16-char logic
+                                    return label.substring(0, 15) + '...';
+                                }
+                                return label;
+                            },
+                             font: { size: 10 }
+                        }
+                    }
+                }
+            }
+        });
+         const chartText = document.createElement('p');
+         chartText.className = 'mt-3 text-xs text-center text-stone-500';
+         chartText.innerHTML = 'Note: GPT-4, with an estimated 170 trillion parameters, has a footprint equivalent to ~61,000 transatlantic flights for a single training run, significantly larger than models shown and not plotted on this linear scale for clarity.';
+         aiModelFootprintChartCtx.parentElement.appendChild(chartText);
+    }
+
+    // Metrics Data
+    const metrics = [
+        { id: "lca", name: "Life Cycle Assessment (LCA)", description: "Comprehensive method to evaluate environmental impact of a product/service throughout its entire life cycle, from raw material extraction to end-of-life. Google Cloud uses this for data center hardware.", formula: "Scope: Cradle-to-grave analysis" },
+        { id: "pue", name: "Power Usage Effectiveness (PUE)", description: "Ratio of total facility power to IT equipment power. Lower is better. Industry avg ~1.8, efficient DCs aim for <1.2. Google's fleet avg: 1.10 (2023).", formula: "PUE = Total Facility Energy / IT Equipment Energy" },
+        { id: "cue", name: "Carbon Usage Effectiveness (CUE)", description: "Quantifies GHG emissions associated with a data center's energy consumption.", formula: "CUE = Total CO2e emissions / IT Equipment Energy" },
+        { id: "wue", name: "Water Usage Effectiveness (WUE)", description: "Measures water used by a data center. DCs are top 10 water consumers in US. Median: 0.74L/GB of internet use.", formula: "WUE = Annual Water Usage / IT Equipment Energy" },
+        { id: "sci", name: "Software Carbon Intensity (SCI)", description: "Green Software Foundation metric for scoring a software app's rate of carbon emissions. Incentivizes emission elimination.", formula: "SCI = ((E * I) + M) / R (E=energy, I=carbon intensity, M=embodied, R=functional unit)" },
+        { id: "cci", name: "Compute Carbon Intensity (CCI)", description: "Google's metric for AI hardware sustainability. Carbon emissions per unit of computation (gCO2e/Exa-FLOP). TPUs showed 3x CCI improvement (v4i to v6e).", formula: "CCI = gCO2e / Exa-FLOP" },
+        { id: "fuel", name: "FUEL Framework (CFU)", description: "Functional unit-based framework for LLM serving impact. Calculates Carbon Emission per Functional Unit (CFU) considering operational & embodied carbon.", formula: "CFU based on token generation workload, performance, quality" },
+        { id: "preindex", name: "PreIndex", description: "Predictive index for environmental/compute resources for model retraining due to data shifts. Needs one forward pass.", formula: "Predictive score for retraining needs" },
+        { id: "aes", name: "AI Energy Score", description: "Standardized energy efficiency ratings for AI model inference (1-5 stars). Based on GPU energy use for specific tasks on NVIDIA H100s.", formula: "Star rating based on energy consumption" }
+    ];
+
+    const metricsContainer = document.getElementById('metricsContainer');
+    const metricDetailDiv = document.getElementById('metricDetail');
+    const metricDetailTitle = document.getElementById('metricDetailTitle');
+    const metricDetailDescription = document.getElementById('metricDetailDescription');
+    const metricDetailFormula = document.getElementById('metricDetailFormula');
+
+    if (metricsContainer) {
+        metrics.forEach(metric => {
+            const card = document.createElement('div');
+            card.className = 'metric-card bg-white p-4 rounded-lg shadow cursor-pointer hover:shadow-xl';
+            card.innerHTML = `<h4 class="font-semibold text-emerald-700">${metric.name}</h4>`;
+            card.addEventListener('click', () => {
+                metricDetailTitle.textContent = metric.name;
+                metricDetailDescription.textContent = metric.description;
+                metricDetailFormula.textContent = metric.formula ? `Formula/Key: ${metric.formula}` : "";
+                metricDetailFormula.style.display = metric.formula ? "block" : "none";
+                metricDetailDiv.classList.remove('hidden');
+                // Scroll to detail view on small screens
+                if (window.innerWidth < 768) {
+                    metricDetailDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+            metricsContainer.appendChild(card);
+        });
+    }
+
+    // AI for Good Applications Data
+    const aiApplications = [
+        { 
+            id: "climate", 
+            name: "Climate Modeling & Prediction", 
+            icon: "🌦️",
+            summary: "Enhancing predictive accuracy, computational efficiency, and handling 'gray swan' events. Microsoft's Aurora model is an example.",
+            details: [
+                "ML/DL improve data processing, predictive accuracy, and integrate diverse datasets (satellites, sensors).",
+                "Excel at detecting intricate patterns, refining resolutions, and real-time predictions.",
+                "Hybrid models (AI + physics) address 'gray swan' events (rare, high-impact).",
+                "Improves 'nowcasting' (0-60 min forecasts) and corrects biases in traditional models.",
+                "Microsoft's Aurora: Foundation model predicts weather, air pollution, cyclones with high accuracy.",
+                "Helps understand climate tipping points and feedback loops with computationally efficient models."
+            ]
+        },
+        { 
+            id: "smartgrid", 
+            name: "Smart Grids & Renewable Energy", 
+            icon: "🔋",
+            summary: "Optimizing grid operations, renewable integration, and energy efficiency. DeepMind boosted wind energy value by 20%.",
+            details: [
+                "Optimizes power plant operations and renewable energy forecasting (solar, wind).",
+                "AI-powered grid monitoring detects faults, prevents failures, optimizes power flow.",
+                "DeepMind's wind energy optimization boosted renewables' economic value by 20%.",
+                "Smart meters and demand-response systems use AI for load balancing.",
+                "Integrates distributed energy (rooftop solar, batteries) by predicting optimal charge/discharge.",
+                "Enables carbon-aware consumption by showing real-time electricity carbon intensity."
+            ]
+        },
+        { 
+            id: "conservation", 
+            name: "Environmental Monitoring & Conservation", 
+            icon: "🌳",
+            summary: "Processing vast remote sensing data for real-time monitoring, predictive modeling, and biodiversity conservation.",
+            details: [
+                "Processes data from satellites, sensors, drones for real-time air/water quality, deforestation, wildlife tracking.",
+                "Crucial for timely action in wildfires, floods, storms.",
+                "Predicts ecological outcomes, species interactions, biodiversity tipping points (e.g., WWF's Forest Foresight).",
+                "Identifies species from images (iNaturalist) and sound recordings.",
+                "Processes camera trap images rapidly for wildlife management.",
+                "AI-enabled smart collars track endangered species to prevent poaching."
+            ]
+        },
+        { 
+            id: "agriculture", 
+            name: "Sustainable Agriculture", 
+            icon: "🌾",
+            summary: "Transforming farming with precision techniques, resource efficiency, and supply chain optimization.",
+            details: [
+                "Precision farming: Drones, sensors, computer vision for targeted fertilizer/pesticide application.",
+                "Resource efficiency: AI can save water (e.g., 27.6% for tomatoes) and energy.",
+                "Optimizes irrigation, fertilization, crop rotations based on data.",
+                "Supply chain optimization: Predictive analytics for inventory management and demand forecasting."
+            ]
+        },
+        { 
+            id: "ccs", 
+            name: "Carbon Capture & Storage (CCS)", 
+            icon: "💨",
+            summary: "Optimizing CO2 capture, transport, and storage processes to enhance efficiency and reduce costs.",
+            details: [
+                "AI-powered automation can boost CO2 sequestration rates in CCS facilities.",
+                "Leverages real-time data and ML for decision-making in capture, transport, storage.",
+                "Capture phase: Adjusts parameters, designs new materials, real-time monitoring (e.g., 15% energy reduction).",
+                "Transport phase: Optimizes pipelines and shipment (e.g., 15% cost reduction).",
+                "Storage phase: Assists in site selection and CO2 monitoring.",
+                "AI accelerates material discovery for CCS by 500%."
+            ]
+        }
+    ];
+
+    const aiApplicationsContainer = document.getElementById('aiApplicationsContainer');
+    const applicationDetailDiv = document.getElementById('applicationDetail');
+    const applicationDetailTitle = document.getElementById('applicationDetailTitle');
+    const applicationDetailContent = document.getElementById('applicationDetailContent');
+
+    if (aiApplicationsContainer) {
+        aiApplications.forEach(app => {
+            const card = document.createElement('div');
+            card.className = 'app-card bg-white p-6 rounded-lg shadow-lg cursor-pointer hover:shadow-xl flex flex-col items-center text-center';
+            card.innerHTML = `
+                <span class="text-4xl mb-3">${app.icon}</span>
+                <h4 class="text-lg font-semibold text-emerald-700 mb-2">${app.name}</h4>
+                <p class="text-xs text-stone-600">${app.summary}</p>
+            `;
+            card.addEventListener('click', () => {
+                applicationDetailTitle.textContent = `${app.icon} ${app.name}`;
+                let detailsHtml = '';
+                app.details.forEach(detail => {
+                    detailsHtml += `<p class="mb-1">- ${detail}</p>`;
+                });
+                applicationDetailContent.innerHTML = detailsHtml;
+                applicationDetailDiv.classList.remove('hidden');
+                 if (window.innerWidth < 768) {
+                    applicationDetailDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+            aiApplicationsContainer.appendChild(card);
+        });
+    }
+    
+    // Projects Data
+    const projects = [
+        {
+            id: "carbonmonitor",
+            name: "Carbon Footprint Monitoring Tool",
+            level: "Beginner-Intermediate",
+            concept: "Develop a simple application to track the carbon footprint of local AI or general computing tasks, making invisible energy consumption visible.",
+            tech: "Python, CodeCarbon library, Streamlit/Flask (for UI), Matplotlib/Seaborn (visualization).",
+            data: "CodeCarbon for local energy/carbon intensity. APIs: CarbonIntensity.org.uk, ElectricityMaps.com for regional data.",
+            deliverable: "Script or simple web app displaying real-time CO2e emissions for a task, with a summary dashboard and contextual equivalents (e.g., miles driven)."
+        },
+        {
+            id: "greencloud",
+            name: "Green Cloud Compute Recommender",
+            level: "Intermediate",
+            concept: "Build a prototype tool that recommends optimal cloud regions for AI workloads based on real-time/historical carbon intensity data, promoting carbon-aware computing.",
+            tech: "Python, cloud provider APIs (optional/mock), APIs from ElectricityMaps.com/CarbonIntensity.org.uk. Streamlit/Flask for UI.",
+            data: "Carbon intensity data from ElectricityMaps.com/CarbonIntensity.org.uk. US Data Center locations from Aterio.io for context.",
+            deliverable: "App suggesting cloud regions/scheduling times based on lower carbon intensity for a given workload type. Could include ranking or heatmap."
+        },
+        {
+            id: "modelefficiency",
+            name: "AI Model Efficiency Analyzer",
+            level: "Intermediate-Advanced",
+            concept: "Conduct a small-scale experimental comparison of energy consumption for different AI architectures or the impact of optimization techniques (pruning, quantization).",
+            tech: "Python, PyTorch/TensorFlow, CodeCarbon library. Familiarity with AI Energy Score concepts.",
+            data: "Publicly available small AI models (e.g., MobileNet, distilled BERT). CodeCarbon for energy/CO2e measurement. Carbon intensity data for accurate conversion.",
+            deliverable: "Report or Jupyter Notebook demonstrating energy/carbon savings from optimization techniques on a chosen AI model, compared to a baseline."
+        }
+    ];
+
+    const projectsContainer = document.getElementById('projectsContainer');
+    const projectDetailDiv = document.getElementById('projectDetail');
+    const projectDetailTitle = document.getElementById('projectDetailTitle');
+    const projectDetailConcept = document.getElementById('projectDetailConcept');
+    const projectDetailTech = document.getElementById('projectDetailTech');
+    const projectDetailData = document.getElementById('projectDetailData');
+    const projectDetailDeliverable = document.getElementById('projectDetailDeliverable');
+
+    if (projectsContainer) {
+        projects.forEach(project => {
+            const card = document.createElement('div');
+            card.className = 'project-card bg-white p-6 rounded-lg shadow-lg cursor-pointer hover:shadow-xl';
+            card.innerHTML = `
+                <h4 class="text-lg font-semibold text-emerald-700 mb-1">${project.name}</h4>
+                <p class="text-xs text-emerald-600 font-medium mb-2">${project.level}</p>
+                <p class="text-sm text-stone-600">${project.concept.substring(0,100)}...</p>
+            `;
+            card.addEventListener('click', () => {
+                projectDetailTitle.textContent = project.name + ` (${project.level})`;
+                projectDetailConcept.textContent = project.concept;
+                projectDetailTech.textContent = project.tech;
+                projectDetailData.textContent = project.data;
+                projectDetailDeliverable.textContent = project.deliverable;
+                projectDetailDiv.classList.remove('hidden');
+                 if (window.innerWidth < 768) {
+                    projectDetailDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            });
+            projectsContainer.appendChild(card);
+        });
+    }
+
+    // Recommendations Data
+    const recommendations = [
+        {
+            category: "For Researchers and Developers",
+            points: [
+                "Prioritize Energy-Efficient Model Design: Use lightweight architectures, pruning, quantization, knowledge distillation.",
+                "Optimize Hardware Utilization: Leverage TPUs, explore neuromorphic/optical computing.",
+                "Implement Carbon-Aware Scheduling: Run jobs when renewable energy is high or in low-carbon regions.",
+                "Utilize Open-Source Measurement Tools: Integrate tools like CodeCarbon into workflows."
+            ]
+        },
+        {
+            category: "For Industry and Organizations",
+            points: [
+                "Invest in Green Data Centers: Focus on high PUE, liquid cooling, heat reuse.",
+                "Procure Renewable Energy: Use PPAs, invest in new renewable sources.",
+                "Adopt Comprehensive LCA and Reporting: Measure embodied/operational emissions across supply chains.",
+                "Demand Transparency from Cloud Providers: Require detailed energy/carbon data for AI workloads (e.g., AI Energy Score).",
+                "Leverage AI for Internal Sustainability: Use AI for ESG reporting, CO2 balances, supply chain optimization."
+            ]
+        },
+        {
+            category: "For Policymakers",
+            points: [
+                "Mandate Transparency and Reporting: Enforce standards for Scope 1, 2, 3 emissions and metrics (PUE, CUE, WUE).",
+                "Incentivize Sustainable AI Development: Offer R&D grants, tax incentives for efficient AI.",
+                "Support Interdisciplinary Research: Fund collaborations between computer scientists, environmental researchers, policymakers.",
+                "Promote 'Computing Within Limits': Manage overall data center energy demand, encourage demand-side flexibility."
+            ]
+        },
+        {
+            category: "For Tech Enthusiasts and Sustainability Advocates",
+            points: [
+                "Engage in Hands-on Projects: Quantify AI's carbon footprint, explore green computing, analyze model efficiency.",
+                "Advocate for Transparency: Demand environmental impact data from AI developers and cloud providers.",
+                "Contribute to Open-Source Initiatives: Participate in projects like CodeCarbon."
+            ]
+        }
+    ];
+
+    const recommendationsContainer = document.getElementById('recommendationsContainer');
+    if (recommendationsContainer) {
+        recommendations.forEach(recCategory => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'recommendation-category bg-white rounded-lg shadow-lg overflow-hidden';
+
+            const button = document.createElement('button');
+            button.className = 'w-full text-left p-4 bg-emerald-50 hover:bg-emerald-100 focus:outline-none';
+            button.innerHTML = `<h4 class="text-lg font-semibold text-emerald-700 flex justify-between items-center">
+                                    ${recCategory.category}
+                                    <span class="transform transition-transform duration-200 text-emerald-600 text-xl normal-case font-sans">&#x25BC;</span>
+                                </h4>`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'accordion-content p-4 border-t border-emerald-200';
+            
+            const ul = document.createElement('ul');
+            ul.className = 'list-disc list-inside space-y-2 text-sm';
+            recCategory.points.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point;
+                ul.appendChild(li);
+            });
+            contentDiv.appendChild(ul);
+            
+            button.addEventListener('click', () => {
+                const icon = button.querySelector('span');
+                if (contentDiv.style.maxHeight && contentDiv.style.maxHeight !== '0px') {
+                    contentDiv.style.maxHeight = '0px';
+                    icon.style.transform = 'rotate(0deg)';
+                } else {
+                    contentDiv.style.maxHeight = contentDiv.scrollHeight + "px";
+                    icon.style.transform = 'rotate(180deg)';
+                }
+            });
+
+            categoryDiv.appendChild(button);
+            categoryDiv.appendChild(contentDiv);
+            recommendationsContainer.appendChild(categoryDiv);
+        });
+    }
+
+</script>
+</body>
+</html>

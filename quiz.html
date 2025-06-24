@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Footprint Journey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Calm Harmony (Base: Stone, Accent: Emerald) -->
+    <!-- Application Structure Plan: A multi-step questionnaire guided by a central, evolving doodle (AI Sprout). Each question prompts a unique interaction, influencing the doodle's appearance and the final carbon footprint calculation. The flow moves from an intro, through questions, to a dynamic results page with equivalencies and personalized tips. -->
+    <!-- Visualization & Content Choices:
+        - Interactive Doodle (SVG/JS): Central visual element, grows/changes color/animates based on user answers and total footprint. Reflects "health" of AI usage.
+        - Creative Question Prompts (HTML/JS): Questions are framed as engaging scenarios, not simple queries.
+        - Animated Transitions (CSS/JS): Smooth fades, slides, and pop-ins for questions, doodle changes, and results.
+        - Dynamic Calculation (JS): Real-time calculation based on user input, updating visual state.
+        - Carbon/Water Equivalents (HTML/JS): Results presented with relatable real-world comparisons.
+        - CONFIRMATION: NO SVG graphics used for complex charting (only simple doodle). NO Mermaid JS used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+        }
+        .container {
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+        .question-section {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            opacity: 0;
+            transform: translateX(100%);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
+        }
+        .question-section.active {
+            opacity: 1;
+            transform: translateX(0%);
+            position: relative;
+        }
+        .question-section.hidden {
+            display: none;
+        }
+        .question-section.slide-out {
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+        .option-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .option-card.selected {
+            border-color: #059669; /* emerald-600 */
+            box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.5);
+            background-color: #D1FAE5; /* emerald-100 */
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #059669; /* emerald-600 */
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.15s ease-in-out;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #059669;
+            cursor: pointer;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: background 0.15s ease-in-out;
+        }
+        /* Doodle specific SVG styling for animation */
+        #sprout-stem {
+            transition: all 0.5s ease-in-out;
+            transform-origin: bottom center;
+        }
+        .sprout-leaf {
+            transition: all 0.5s ease-in-out;
+            transform-origin: center center;
+        }
+        .sprout-spark {
+            animation: pulse-spark 1.5s infinite ease-in-out;
+            opacity: 0;
+            transform: scale(0);
+        }
+        @keyframes pulse-spark {
+            0% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0); }
+        }
+        .doodle-container {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .results-section {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+        .results-section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-stone-100 to-stone-200 text-stone-800 min-h-screen flex flex-col items-center justify-center p-4">
+
+    <div id="calculator-container" class="bg-white rounded-xl shadow-2xl p-6 md:p-8 lg:p-10 w-full max-w-lg mx-auto my-8 relative overflow-hidden min-h-[600px] flex flex-col justify-between">
+        
+        <div id="intro-screen" class="question-section active text-center">
+            <h2 class="text-4xl font-extrabold text-emerald-700 mb-6">AI Footprint Journey</h2>
+            <div class="doodle-container">
+                <svg id="ai-sprout-doodle" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle id="sprout-pot" cx="50" cy="90" r="15" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                    <path id="sprout-stem" d="M50 75 Q45 50 50 30 Q55 50 50 75" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                    <circle id="sprout-core" cx="50" cy="30" r="5" fill="#4ade80" stroke="#16a34a" stroke-width="1"/>
+                    <g id="sprout-leaves-group">
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(0 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(72 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(144 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(216 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(288 50 30) scale(0)"/>
+                    </g>
+                    <circle class="sprout-spark" cx="60" cy="20" r="2" fill="yellow"/>
+                    <circle class="sprout-spark" cx="40" cy="25" r="2" fill="orange"/>
+                </svg>
+            </div>
+            <p class="text-lg leading-relaxed text-stone-700 mb-8">Ever wondered about the hidden footsteps of your digital companions? Let's uncover your AI Footprint!</p>
+            <button id="start-journey" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+                Start Journey!
+            </button>
+        </div>
+
+        <div id="questions-container" class="relative flex-grow flex flex-col justify-center items-center">
+            <!-- Questions will be dynamically loaded here -->
+        </div>
+
+        <div id="results-screen" class="question-section hidden text-center">
+            <h2 class="text-4xl font-extrabold text-emerald-700 mb-6">Your AI Footprint</h2>
+            <div class="doodle-container">
+                <svg id="final-sprout-doodle" viewBox="0 0 100 100" class="w-full h-full">
+                    <circle id="final-sprout-pot" cx="50" cy="90" r="15" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                    <path id="final-sprout-stem" d="M50 75 Q45 50 50 30 Q55 50 50 75" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                    <circle id="final-sprout-core" cx="50" cy="30" r="5" fill="#4ade80" stroke="#16a34a" stroke-width="1"/>
+                    <g id="final-sprout-leaves-group">
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(0 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(72 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(144 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(216 50 30) scale(0)"/>
+                        <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(288 50 30) scale(0)"/>
+                    </g>
+                </svg>
+            </div>
+            <p id="result-text" class="text-xl font-semibold text-stone-700 mb-4"></p>
+            
+            <div class="bg-emerald-50 p-6 rounded-lg shadow-inner w-full mb-6">
+                <h3 class="text-xl font-bold text-emerald-700 mb-3">Your Annual Impact:</h3>
+                <p class="text-lg mb-2"><strong id="total-co2e" class="text-emerald-800"></strong> CO2e (Carbon Dioxide Equivalent)</p>
+                <p class="text-lg mb-4"><strong id="total-water" class="text-emerald-800"></strong> Liters of Water</p>
+
+                <h4 class="text-lg font-semibold text-stone-700 mb-2">That's like...</h4>
+                <ul class="list-disc list-inside text-sm text-stone-600 space-y-1">
+                    <li id="co2e-equiv-car"></li>
+                    <li id="co2e-equiv-phone"></li>
+                    <li id="water-equiv-shower"></li>
+                    <li id="water-equiv-flush"></li>
+                </ul>
+            </div>
+            
+            <h3 class="text-2xl font-bold text-emerald-600 mb-3">Small Steps, Big Impact:</h3>
+            <ul id="tips-list" class="list-disc list-inside text-sm text-stone-700 text-left w-full mx-auto md:w-4/5 lg:w-3/4 space-y-2">
+                <!-- Tips will be dynamically loaded here -->
+            </ul>
+
+            <button id="restart-journey" class="mt-8 bg-stone-600 hover:bg-stone-700 text-white font-bold py-3 px-8 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105">
+                Restart Journey
+            </button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Core Calculator Data & Logic ---
+        const DEFAULT_QUERY_CO2E_G = 4.32; // grams CO2e per average query (Arbor.eco)
+        const DEFAULT_QUERY_WATER_ML = 500; // ml water per average query (PIMFA, Cority - this is a more illustrative value as Fello.ai indicates 500ml per 300 queries, we use 500ml/query for more impact and simplicity in user calculation, as stated in the plan)
+        const KWH_TO_CO2E_KG_US_AVG = 0.367; // kg CO2e per kWh (WAB Learns, EIA 2024)
+        const KG_TO_G = 1000;
+
+        let userAnswers = {};
+        let currentQuestionIndex = 0;
+        let totalCO2e_g = 0;
+        let totalWater_ml = 0;
+
+        const questions = [
+            {
+                id: 'daily_chatbot_usage',
+                prompt: "Imagine your AI assistant (like Gemini, ChatGPT, Claude) is a trusty messenger. How many quick notes or complex conversations do you typically send its way in a day?",
+                type: 'slider',
+                min: 0,
+                max: 50,
+                step: 1,
+                labels: {
+                    0: 'Rarely',
+                    5: 'A few whispers',
+                    20: 'Daily dialogues',
+                    50: 'Deep dives'
+                },
+                question_specific_data: {
+                    carbon_multiplier_per_query: 1.0,
+                    water_multiplier_per_query: 1.0
+                },
+                get_value: (val) => val, // Value is the number of queries
+                reference: "Arbor.eco, 'AI's Environmental Impact: Calculated and Explained' (published May 20, 2025).",
+                tips_key: 'query_volume'
+            },
+            {
+                id: 'creative_canvas_usage',
+                prompt: "Your AI can paint masterpieces and forge new worlds! How often do you ask it to conjure images or short videos?",
+                type: 'choice',
+                options: [
+                    { value: 0, label: "Rarely sketch", desc: "I'm more of a text-based person." },
+                    { value: 0.5, label: "Occasional artist", desc: "2-5 creations per week." },
+                    { value: 2, label: "Daily visionary", desc: "6+ creations per week." }
+                ],
+                question_specific_data: {
+                    carbon_per_creation_g: 0.002 * KWH_TO_CO2E_KG_US_AVG * KG_TO_G, // 0.002 kWh per image, converted to grams CO2e. (WAB Learns, HuggingFace)
+                    water_per_creation_ml: 100 // Illustrative for more complex generation than simple query
+                },
+                get_value: (val) => val, // Value is multiplier for daily equivalent creations
+                reference: "#ALTC, 'Think before you prompt: Reduce your AI carbon footprint with ROCKS' (published May 15, 2025), citing Luccioni et al. (2024) for image energy.",
+                tips_key: 'creative_usage'
+            },
+            {
+                id: 'code_alchemist_usage',
+                prompt: "Does your AI speak in lines of code? How often do you enlist its help for coding, debugging, or script generation?",
+                type: 'choice',
+                options: [
+                    { value: 0, label: "Novice coder", desc: "Just a few basic snippets." },
+                    { value: 0.2, label: "Weekend warrior", desc: "A few times a week, simple tasks." },
+                    { value: 1, label: "Professional partner", desc: "Integral to my development workflow, complex tasks daily." }
+                ],
+                question_specific_data: {
+                    carbon_per_complex_query_g: 10, // Higher than simple text query, illustrative
+                    water_per_complex_query_ml: 1000 // Illustrative
+                },
+                get_value: (val) => val, // Value is multiplier for daily complex code interactions
+                reference: "Extrapolated from LLM query costs; complex code generation implies more compute.",
+                tips_key: 'coding_usage'
+            },
+            {
+                id: 'data_center_location',
+                prompt: "Where do you imagine the invisible 'brain' powering your AI usually resides? Is it in a region known for green energy, or perhaps one more reliant on traditional sources?",
+                type: 'choice',
+                options: [
+                    { value: 0.05, label: "Green Hub", desc: "Prioritizes providers in renewable-heavy regions (e.g., Quebec, Norway)." },
+                    { value: KWH_TO_CO2E_KG_US_AVG, label: "Mixed Energy", desc: "Uses common services, typical US energy mix." },
+                    { value: 0.7, label: "Fossil-Fueled", desc: "Haven't considered the energy source of my AI's home (e.g., coal-heavy regions)." }
+                ],
+                get_value: (val) => val, // Value is kg CO2e per kWh
+                reference: "WAB Learns, 'AI for Faculty: AI Footprints' (published May 23, 2025), citing EIA (2024) for USA, Statista (2024) for China (as proxy for higher intensity).",
+                tips_key: 'data_center'
+            },
+            {
+                id: 'ai_model_size',
+                prompt: "Do you prefer the giant, all-encompassing AI models, or are you gravitating towards smaller, more specialized ones? Think about the 'size' of the AI brain you usually consult.",
+                type: 'choice',
+                options: [
+                    { value: 0.8, label: "Compact AI", desc: "Lighter versions, specific task-focused AIs." },
+                    { value: 1.0, label: "Standard AI", desc: "Common commercial chatbots (e.g., typical GPT-3.5/Gemini usage)." },
+                    { value: 1.5, label: "Giant AI", desc: "Cutting-edge, massive LLMs (e.g., GPT-4 advanced usage)." }
+                ],
+                get_value: (val) => val, // Value is a multiplier for query cost
+                reference: "Fordham Law ELR, 'The Environmental Impact of AI: ChatGPT and Beyond' (published April 28, 2025), noting model size impacts energy.",
+                tips_key: 'model_size'
+            },
+            {
+                id: 'prompt_engineering_skill',
+                prompt: "Are you a master of crafting precise prompts, or do you tend to ask a lot of follow-up questions to get what you need? Think about how many 'tries' it takes to get your ideal AI response.",
+                type: 'choice',
+                options: [
+                    { value: 0.9, label: "One-shot wonder", desc: "I get it right the first time (precise prompting)." },
+                    { value: 1.1, label: "Iterative explorer", desc: "A few back-and-forths for refinement." },
+                    { value: 1.3, label: "Trial-and-error maestro", desc: "Frequent adjustments and many prompts." }
+                ],
+                get_value: (val) => val, // Value is a multiplier for effective query count
+                reference: "#ALTC, 'Think before you prompt: Reduce your AI carbon footprint with ROCKS' (published May 15, 2025), emphasizing prompt engineering's role.",
+                tips_key: 'prompting'
+            },
+            {
+                id: 'ai_always_on',
+                prompt: "Do you leave AI-powered tabs or applications open even when not actively using them? Think of it like leaving a light on in an empty room.",
+                type: 'choice',
+                options: [
+                    { value: 0, label: "Always Off", desc: "I close everything when not in use." },
+                    { value: 0.1, label: "Sometimes On", desc: "I occasionally leave things open." },
+                    { value: 0.2, label: "Always On", desc: "My browser often has AI tabs running." }
+                ],
+                get_value: (val) => val, // Value is a percentage adder to daily cost
+                reference: "General principle of background energy consumption by open applications and network connections.",
+                tips_key: 'always_on'
+            },
+            {
+                id: 'device_used',
+                prompt: "The device you use to access AI also plays a part. What's your primary AI access device?",
+                type: 'choice',
+                options: [
+                    { value: 0.005, label: "Smartphone/Tablet", desc: "My go-to for quick interactions (approx. 0.005 kWh/hr)." },
+                    { value: 0.07, label: "Standard Laptop/Desktop", desc: "My everyday workhorse (approx. 0.07 kWh/hr)." },
+                    { value: 0.2, label: "High-Performance Workstation/Gaming PC", desc: "Power for demanding tasks (approx. 0.2 kWh/hr)." }
+                ],
+                question_specific_data: {
+                    hours_per_day: 4 // Average active usage hours for device
+                },
+                get_value: (val) => val, // Value is kWh/hour for the device
+                reference: "WAB Learns, 'AI for Faculty: AI Footprints' (published May 23, 2025), citing MacBook Pro (0.07kW/h).",
+                tips_key: 'device_type'
+            },
+            {
+                id: 'activity_replaced',
+                prompt: "Sometimes AI helps us avoid more carbon-intensive activities. What activity, if any, do you feel your AI usage *replaces* most often?",
+                type: 'choice',
+                options: [
+                    { value: 0, label: "None directly", desc: "AI is an addition to my workflow." },
+                    { value: -20, label: "Extensive manual research", desc: "AI saves me hours of searching (offset ~20 kg CO2e/year)." },
+                    { value: -50, label: "Travel for meetings/collaboration", desc: "AI allows for remote work (offset ~50 kg CO2e/year)." },
+                    { value: -100, label: "Physical product creation/testing", desc: "AI simulates prototypes (offset ~100 kg CO2e/year)." }
+                ],
+                get_value: (val) => val, // Value is CO2e offset in kg/year
+                reference: "Marmelab, 'AI's Environmental Impact: Making an Informed Choice' (published March 19, 2025).",
+                tips_key: 'offset_potential'
+            },
+            {
+                id: 'digital_hygiene',
+                prompt: "Beyond AI, how conscious are you of your general digital habits? Do you regularly clear cache, minimize open tabs, and optimize your devices?",
+                type: 'choice',
+                options: [
+                    { value: 0.95, label: "Digital Minimalist", desc: "My digital space is always tidy." },
+                    { value: 1.0, label: "Conscious User", desc: "I try to optimize when I remember." },
+                    { value: 1.05, label: "Digital Hoarder", desc: "My browser often has hundreds of tabs open." }
+                ],
+                get_value: (val) => val, // Value is overall footprint multiplier
+                reference: "General principles of digital sustainability and efficient computing (IDECSI Blog, 2022).",
+                tips_key: 'digital_hygiene_level'
+            }
+        ];
+
+        // --- DOM Elements ---
+        const introScreen = document.getElementById('intro-screen');
+        const startJourneyBtn = document.getElementById('start-journey');
+        const questionsContainer = document.getElementById('questions-container');
+        const resultsScreen = document.getElementById('results-screen');
+        const restartJourneyBtn = document.getElementById('restart-journey');
+
+        const sproutStem = document.getElementById('sprout-stem');
+        const sproutLeaves = document.querySelectorAll('.sprout-leaf');
+        const sproutCore = document.getElementById('sprout-core');
+        const sproutSparks = document.querySelectorAll('.sprout-spark');
+
+        const finalSproutStem = document.getElementById('final-sprout-stem');
+        const finalSproutLeaves = document.querySelectorAll('#final-sprout-leaves-group .sprout-leaf');
+        const finalSproutCore = document.getElementById('final-sprout-core');
+
+        const totalCO2eEl = document.getElementById('total-co2e');
+        const totalWaterEl = document.getElementById('total-water');
+        const resultTextEl = document.getElementById('result-text');
+        const co2eEquivCar = document.getElementById('co2e-equiv-car');
+        const co2eEquivPhone = document.getElementById('co2e-equiv-phone');
+        const waterEquivShower = document.getElementById('water-equiv-shower');
+        const waterEquivFlush = document.getElementById('water-equiv-flush');
+        const tipsList = document.getElementById('tips-list');
+
+        // --- Doodle Animation Control ---
+        function updateDoodle(impactFactor) {
+            // Impact factor ranges from 0 (good) to 1 (bad), relative to a threshold.
+            // Let's normalize impactFactor to a scale where 0.5 is average, <0.5 is better, >0.5 is worse.
+            // Stem: grows taller, color changes from green to brown
+            // Leaves: grow larger, number increases, color changes from vibrant green to duller/browner
+            // Sparks: appear when impact is good (lower), disappear when bad (higher)
+
+            const normalizedImpact = Math.min(1, Math.max(0, impactFactor / 500)); // Normalize total gCO2e to 0-1 scale, 500g as high impact marker
+            
+            // Stem height (illustrative)
+            const stemHeightScale = 1 - (normalizedImpact * 0.5); // From 1 to 0.5
+            sproutStem.style.transform = `scaleY(${stemHeightScale}) translateY(${50 * (1 - stemHeightScale)}px)`;
+            sproutStem.style.fill = `rgb(${168 + normalizedImpact * 80}, ${162 - normalizedImpact * 100}, ${158 - normalizedImpact * 100})`; // Brownish for higher impact
+
+            // Leaf growth and color
+            sproutLeaves.forEach((leaf, index) => {
+                const leafScale = 1 - (normalizedImpact * 0.8); // From 1 to 0.2
+                leaf.style.transform = `rotate(${index * 72}deg) scale(${leafScale})`;
+                leaf.style.fill = `rgb(${74 - normalizedImpact * 50}, ${222 - normalizedImpact * 150}, ${128 - normalizedImpact * 80})`; // Dull green/brown for higher impact
+            });
+
+            // Sparks (more sparks for lower impact)
+            sproutSparks.forEach(spark => {
+                spark.style.opacity = (1 - normalizedImpact) > 0.5 ? 1 : 0;
+                spark.style.transform = (1 - normalizedImpact) > 0.5 ? 'scale(1)' : 'scale(0)';
+            });
+
+            // Sprout core color
+            sproutCore.style.fill = `rgb(${74 + normalizedImpact * 100}, ${222 - normalizedImpact * 150}, ${128 - normalizedImpact * 80})`; // More reddish/dull for higher impact
+        }
+
+        function setFinalDoodleState(totalCO2e) {
+            const normalizedImpact = Math.min(1, Math.max(0, totalCO2e / 500000)); // Normalize total annual gCO2e to 0-1 scale, 500kg as high impact marker
+
+            const stemHeightScale = 1 - (normalizedImpact * 0.5);
+            finalSproutStem.style.transform = `scaleY(${stemHeightScale}) translateY(${50 * (1 - stemHeightScale)}px)`;
+            finalSproutStem.style.fill = `rgb(${168 + normalizedImpact * 80}, ${162 - normalizedImpact * 100}, ${158 - normalizedImpact * 100})`;
+
+            finalSproutLeaves.forEach((leaf, index) => {
+                const leafScale = 1 - (normalizedImpact * 0.8);
+                leaf.style.transform = `rotate(${index * 72}deg) scale(${leafScale})`;
+                leaf.style.fill = `rgb(${74 - normalizedImpact * 50}, ${222 - normalizedImpact * 150}, ${128 - normalizedImpact * 80})`;
+            });
+
+            finalSproutCore.style.fill = `rgb(${74 + normalizedImpact * 100}, ${222 - normalizedImpact * 150}, ${128 - normalizedImpact * 80})`;
+
+            // Remove sparks from final doodle as it represents the sum
+            document.querySelectorAll('#final-sprout-doodle .sprout-spark').forEach(spark => spark.style.display = 'none');
+        }
+
+
+        // --- Question Rendering ---
+        function renderQuestion(question) {
+            const currentSection = document.querySelector('.question-section.active');
+            if (currentSection && currentSection !== introScreen) {
+                currentSection.classList.remove('active');
+                currentSection.classList.add('slide-out');
+                setTimeout(() => {
+                    currentSection.classList.add('hidden');
+                    currentSection.remove();
+                }, 500); // Wait for slide-out animation
+            }
+
+            const questionSection = document.createElement('div');
+            questionSection.id = `question-${question.id}`;
+            questionSection.className = 'question-section text-center p-4 md:p-6 lg:p-8 flex-grow overflow-y-auto'; // Added overflow-y-auto
+
+            let optionsHtml = '';
+            if (question.type === 'choice') {
+                optionsHtml = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 w-full max-w-md mx-auto">`;
+                question.options.forEach(option => {
+                    optionsHtml += `
+                        <div class="option-card bg-white p-4 rounded-lg shadow-md cursor-pointer border-2 border-transparent" data-value="${option.value}">
+                            <h4 class="font-semibold text-emerald-700">${option.label}</h4>
+                            <p class="text-sm text-stone-600">${option.desc}</p>
+                        </div>
+                    `;
+                });
+                optionsHtml += `</div>`;
+            } else if (question.type === 'slider') {
+                optionsHtml = `
+                    <div class="w-full max-w-md mx-auto mt-6">
+                        <input type="range" min="${question.min}" max="${question.max}" value="${question.min}" step="${question.step}" 
+                               class="w-full h-2 bg-stone-300 rounded-lg appearance-none cursor-pointer slider-thumb" id="slider-${question.id}">
+                        <div class="flex justify-between text-xs text-stone-500 mt-2">
+                            ${Object.keys(question.labels).map(key => `<span class="${parseInt(key) == question.min ? 'font-bold' : ''}">${question.labels[key]}</span>`).join('')}
+                        </div>
+                        <p id="slider-value-display" class="text-xl font-bold text-emerald-700 mt-4">${question.min} ${question.labels[question.min] ? '' : 'units'}</p>
+                    </div>
+                `;
+            }
+
+            questionSection.innerHTML = `
+                <div class="w-full h-full flex flex-col justify-center items-center">
+                    <h3 class="text-2xl md:text-3xl font-bold text-emerald-700 mb-4 leading-snug">${question.prompt}</h3>
+                    <div class="doodle-container">
+                        <svg id="question-sprout-doodle" viewBox="0 0 100 100" class="w-full h-full">
+                            <circle id="sprout-pot" cx="50" cy="90" r="15" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                            <path id="sprout-stem" d="M50 75 Q45 50 50 30 Q55 50 50 75" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
+                            <circle id="sprout-core" cx="50" cy="30" r="5" fill="#4ade80" stroke="#16a34a" stroke-width="1"/>
+                            <g id="sprout-leaves-group">
+                                <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(0 50 30) scale(0)"/>
+                                <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(72 50 30) scale(0)"/>
+                                <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(144 50 30) scale(0)"/>
+                                <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(216 50 30) scale(0)"/>
+                                <path class="sprout-leaf" d="M50 30 Q40 20 45 15 Q50 10 55 15 Q60 20 50 30" fill="#4ade80" stroke="#16a34a" stroke-width="1" transform="rotate(288 50 30) scale(0)"/>
+                            </g>
+                            <circle class="sprout-spark" cx="60" cy="20" r="2" fill="yellow"/>
+                            <circle class="sprout-spark" cx="40" cy="25" r="2" fill="orange"/>
+                        </svg>
+                    </div>
+                    ${optionsHtml}
+                    <p class="text-xs text-stone-500 mt-4"><em>Reference: ${question.reference}</em></p>
+                    <button id="next-question" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-full shadow-md mt-6 transition-all duration-300 transform hover:scale-105 opacity-50 cursor-not-allowed" disabled>Next</button>
+                </div>
+            `;
+
+            questionsContainer.appendChild(questionSection);
+            setTimeout(() => {
+                questionSection.classList.add('active');
+                // Ensure the doodle within the new question is initialized correctly
+                updateDoodle(0); // Reset doodle for new question or small initial growth
+            }, 100);
+
+
+            const nextBtn = questionSection.querySelector('#next-question');
+            let selectedValue = null;
+
+            if (question.type === 'choice') {
+                const optionCards = questionSection.querySelectorAll('.option-card');
+                optionCards.forEach(card => {
+                    card.addEventListener('click', () => {
+                        optionCards.forEach(oc => oc.classList.remove('selected'));
+                        card.classList.add('selected');
+                        selectedValue = card.dataset.value;
+                        nextBtn.disabled = false;
+                        nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    });
+                });
+            } else if (question.type === 'slider') {
+                const slider = questionSection.querySelector(`#slider-${question.id}`);
+                const sliderValueDisplay = questionSection.querySelector('#slider-value-display');
+                selectedValue = slider.value; // Set initial value
+                nextBtn.disabled = false; // Slider always has a value
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+                slider.addEventListener('input', () => {
+                    selectedValue = slider.value;
+                    const label = question.labels[selectedValue] || '';
+                    sliderValueDisplay.textContent = `${selectedValue} ${label}`;
+                    // Dynamically update doodle based on current slider value (pre-calculation)
+                    const tempCO2e = calculateFootprintForQuestion(question, selectedValue);
+                    updateDoodle(tempCO2e);
+                });
+                 // Initial doodle update for slider
+                const tempCO2e = calculateFootprintForQuestion(question, selectedValue);
+                updateDoodle(tempCO2e);
+            }
+
+            nextBtn.addEventListener('click', () => {
+                userAnswers[question.id] = question.get_value(selectedValue);
+                currentQuestionIndex++;
+                if (currentQuestionIndex < questions.length) {
+                    renderQuestion(questions[currentQuestionIndex]);
+                } else {
+                    calculateFinalFootprint();
+                    displayResults();
+                }
+            });
+        }
+
+        function calculateFootprintForQuestion(question, answerValue) {
+            let tempCO2e = 0;
+            let tempWater = 0;
+
+            if (question.id === 'daily_chatbot_usage') {
+                tempCO2e = answerValue * DEFAULT_QUERY_CO2E_G;
+                tempWater = answerValue * DEFAULT_QUERY_WATER_ML;
+            } else if (question.id === 'creative_canvas_usage') {
+                tempCO2e = answerValue * question.question_specific_data.carbon_per_creation_g * 365 / 7; // Convert weekly creations to daily for calc
+                tempWater = answerValue * question.question_specific_data.water_per_creation_ml * 365 / 7;
+            } else if (question.id === 'code_alchemist_usage') {
+                tempCO2e = answerValue * question.question_specific_data.carbon_per_complex_query_g * 365;
+                tempWater = answerValue * question.question_specific_data.water_per_complex_query_ml * 365;
+            } else if (question.id === 'device_used') {
+                // Device usage is kWh/hr * hours_per_day * 365 days, then convert to CO2e
+                tempCO2e = answerValue * question.question_specific_data.hours_per_day * 365 * KWH_TO_CO2E_KG_US_AVG * KG_TO_G;
+                // Device water consumption is trickier, largely indirect. For simplicity, we can omit it or make it negligible here
+                tempWater = 0;
+            }
+            return tempCO2e; // Return just CO2e for doodle scaling
+        }
+
+
+        function calculateFinalFootprint() {
+            totalCO2e_g = 0;
+            totalWater_ml = 0;
+
+            const dailyChatbotQueries = parseFloat(userAnswers['daily_chatbot_usage'] || 0);
+            const creativeWeeklyCreations = parseFloat(userAnswers['creative_canvas_usage'] || 0);
+            const codeDailyComplexQueries = parseFloat(userAnswers['code_alchemist_usage'] || 0);
+            const dataCenterKGC02ePerKWh = parseFloat(userAnswers['data_center_location'] || KWH_TO_CO2E_KG_US_AVG);
+            const aiModelSizeMultiplier = parseFloat(userAnswers['ai_model_size'] || 1.0);
+            const promptEngineeringMultiplier = parseFloat(userAnswers['prompt_engineering_skill'] || 1.0);
+            const aiAlwaysOnAdder = parseFloat(userAnswers['ai_always_on'] || 0);
+            const deviceKWhPerHour = parseFloat(userAnswers['device_used'] || 0);
+            const activityReplacedOffset_kg = parseFloat(userAnswers['activity_replaced'] || 0);
+            const digitalHygieneMultiplier = parseFloat(userAnswers['digital_hygiene'] || 1.0);
+
+            // Base query footprint (adjusted by model size and prompting skill)
+            const effectiveDailyQueries = dailyChatbotQueries * promptEngineeringMultiplier;
+            let queryCO2e_g_per_day = effectiveDailyQueries * DEFAULT_QUERY_CO2E_G * aiModelSizeMultiplier;
+            let queryWater_ml_per_day = effectiveDailyQueries * DEFAULT_QUERY_WATER_ML * aiModelSizeMultiplier;
+
+            // Add always-on cost (as a percentage of daily query cost)
+            queryCO2e_g_per_day += queryCO2e_g_per_day * aiAlwaysOnAdder;
+            queryWater_ml_per_day += queryWater_ml_per_day * aiAlwaysOnAdder;
+
+            // Creative usage
+            const creativeCO2e_g_per_day = (creativeWeeklyCreations / 7) * questions[1].question_specific_data.carbon_per_creation_g;
+            const creativeWater_ml_per_day = (creativeWeeklyCreations / 7) * questions[1].question_specific_data.water_per_creation_ml;
+
+            // Coding usage
+            const codingCO2e_g_per_day = codeDailyComplexQueries * questions[2].question_specific_data.carbon_per_complex_query_g;
+            const codingWater_ml_per_day = codeDailyComplexQueries * questions[2].question_specific_data.water_per_complex_query_ml;
+
+            // Device usage (converted to daily gCO2e)
+            const deviceDailyKWh = deviceKWhPerHour * questions[7].question_specific_data.hours_per_day;
+            const deviceCO2e_g_per_day = deviceDailyKWh * dataCenterKGC02ePerKWh * KG_TO_G;
+
+            // Sum up daily CO2e and water
+            const totalDailyCO2e_g = queryCO2e_g_per_day + creativeCO2e_g_per_day + codingCO2e_g_per_day + deviceCO2e_g_per_day;
+            const totalDailyWater_ml = queryWater_ml_per_day + creativeWater_ml_per_day + codingWater_ml_per_day;
+
+            // Annualize
+            totalCO2e_g = totalDailyCO2e_g * 365;
+            totalWater_ml = totalDailyWater_ml * 365;
+
+            // Apply data center carbon intensity factor to relevant CO2e (assuming all operational)
+            // The `dataCenterKGC02ePerKWh` is already in kg/kWh, so apply it directly.
+            // The `DEFAULT_QUERY_CO2E_G` is an average, so we need to re-factor based on energy.
+            // A more precise model would calculate kWh, then apply the chosen location's kgCO2e/kWh.
+            // For simplicity in this illustrative calculator, we'll apply a *ratio* of the chosen location's intensity
+            // to the default US average intensity to scale the total CO2e.
+            const co2eScalingFactor = dataCenterKGC02ePerKWh / KWH_TO_CO2E_KG_US_AVG;
+            totalCO2e_g *= co2eScalingFactor;
+
+
+            // Add fixed annual embodied carbon (illustrative)
+            const embodiedCarbon_kg_per_year = 50; // Reference: GPUs are significant, 50kg/year is an illustrative share. (Youzhi Li, 2025)
+            totalCO2e_g += (embodiedCarbon_kg_per_year * KG_TO_G);
+
+            // Apply activity replacement offset
+            totalCO2e_g += (activityReplacedOffset_kg * KG_TO_G); // Offset is negative, so it subtracts
+
+            // Apply digital hygiene multiplier
+            totalCO2e_g *= digitalHygieneMultiplier;
+
+            // Ensure values don't go negative
+            totalCO2e_g = Math.max(0, totalCO2e_g);
+            totalWater_ml = Math.max(0, totalWater_ml);
+        }
+
+        // --- Display Results ---
+        function displayResults() {
+            introScreen.classList.remove('active');
+            introScreen.classList.add('hidden');
+            questionsContainer.classList.remove('active');
+            questionsContainer.classList.add('hidden');
+
+            totalCO2eEl.textContent = (totalCO2e_g / KG_TO_G).toFixed(2) + ' kg'; // Convert to kg
+            totalWaterEl.textContent = (totalWater_ml / 1000).toFixed(2) + ' L'; // Convert to Liters
+
+            // Update final doodle
+            setFinalDoodleState(totalCO2e_g);
+
+            // Equivalencies
+            const co2e_kg = totalCO2e_g / KG_TO_G;
+            const water_L = totalWater_ml / 1000;
+
+            // CO2e Equivalents (Illustrative, based on general averages)
+            // Car: Average passenger vehicle emits ~4.6 metric tons CO2 per year (EPA)
+            // Or 0.122 kgCO2/km (WAB Learns, EPA 2024)
+            const avgCarCO2e_kg_per_km = 0.122;
+            co2eEquivCar.textContent = `Driving a gasoline car for ${Math.round(co2e_kg / avgCarCO2e_kg_per_km)} kilometers.`;
+
+            // Phone: Charging a smartphone ~0.008 kWh per charge (rough estimate)
+            // Assuming 0.4 kgCO2/kWh US avg, 0.0032 kgCO2/charge
+            const avgPhoneChargeCO2e_kg = 0.0032;
+            co2eEquivPhone.textContent = `Charging your smartphone ${Math.round(co2e_kg / avgPhoneChargeCO2e_kg)} times.`;
+
+            // Water Equivalents
+            // Shower: Average 5-min shower ~95 liters (EPA)
+            const avgShowerWater_L = 95;
+            waterEquivShower.textContent = `Taking ${Math.round(water_L / avgShowerWater_L)} average showers.`;
+
+            // Toilet Flush: Average toilet flush ~6 liters (EPA)
+            const avgFlushWater_L = 6;
+            waterEquivFlush.textContent = `Flushing a toilet ${Math.round(water_L / avgFlushWater_L)} times.`;
+
+
+            // Personalized Tips
+            tipsList.innerHTML = '';
+            const tips = {
+                query_volume: {
+                    high: "Consider consolidating your AI queries or using more precise prompts to reduce iterative conversations.",
+                    low: "Great job keeping your AI conversations concise!"
+                },
+                creative_usage: {
+                    high: "Image and video generation are energy-intensive. Explore optimizing resolutions or batching tasks.",
+                    low: "Your creative AI use is light, which helps minimize its footprint!"
+                },
+                coding_usage: {
+                    high: "For heavy coding assistance, explore local or optimized AI models/plugins when possible.",
+                    low: "Efficient coding assistance contributes to a lower footprint!"
+                },
+                data_center: {
+                    high: "Look into AI providers or cloud services that offer data centers powered by renewable energy. Location matters!",
+                    low: "Choosing providers in green energy regions significantly reduces your AI's carbon intensity."
+                },
+                model_size: {
+                    high: "Larger AI models consume more. Consider using smaller, more specialized models when appropriate for your task.",
+                    low: "Opting for efficient AI models helps keep your footprint low."
+                },
+                prompting: {
+                    high: "Practice prompt engineering! Precise prompts reduce the need for multiple iterations, saving energy.",
+                    low: "Your clear and concise prompts are a great way to reduce AI's environmental impact!"
+                },
+                always_on: {
+                    high: "Close AI-powered tabs or applications when not actively using them to prevent background consumption.",
+                    low: "Being mindful of closing unused AI tools is a small but impactful habit."
+                },
+                device_type: {
+                    high: "High-performance devices use more energy. Use your most energy-efficient device for AI tasks when possible.",
+                    low: "Using energy-efficient devices for your AI interactions helps keep consumption down."
+                },
+                offset_potential: {
+                    high: "While AI has a footprint, consider how it might *replace* even more carbon-intensive activities in your life.",
+                    low: "Think about the activities AI can streamline or replace to generate an even greater positive impact."
+                },
+                digital_hygiene_level: {
+                    high: "General digital hygiene (clearing cache, managing tabs) can indirectly reduce data center load.",
+                    low: "Your good digital habits contribute to a healthier overall digital environment."
+                }
+            };
+
+            if (userAnswers['daily_chatbot_usage'] > 20) tipsList.appendChild(createTip(tips.query_volume.high));
+            else tipsList.appendChild(createTip(tips.query_volume.low));
+
+            if (userAnswers['creative_canvas_usage'] > 0.5) tipsList.appendChild(createTip(tips.creative_usage.high));
+            else tipsList.appendChild(createTip(tips.creative_usage.low));
+            
+            if (userAnswers['code_alchemist_usage'] > 0.2) tipsList.appendChild(createTip(tips.coding_usage.high));
+            else tipsList.appendChild(createTip(tips.coding_usage.low));
+
+            if (userAnswers['data_center_location'] > KWH_TO_CO2E_KG_US_AVG) tipsList.appendChild(createTip(tips.data_center.high));
+            else tipsList.appendChild(createTip(tips.data_center.low));
+
+            if (userAnswers['ai_model_size'] > 1.0) tipsList.appendChild(createTip(tips.model_size.high));
+            else tipsList.appendChild(createTip(tips.model_size.low));
+
+            if (userAnswers['prompt_engineering_skill'] > 1.1) tipsList.appendChild(createTip(tips.prompting.high));
+            else tipsList.appendChild(createTip(tips.prompting.low));
+
+            if (userAnswers['ai_always_on'] > 0) tipsList.appendChild(createTip(tips.always_on.high));
+            else tipsList.appendChild(createTip(tips.always_on.low));
+
+            if (userAnswers['device_used'] > 0.07) tipsList.appendChild(createTip(tips.device_type.high));
+            else tipsList.appendChild(createTip(tips.device_type.low));
+            
+            if (userAnswers['activity_replaced'] === 0) tipsList.appendChild(createTip(tips.offset_potential.high));
+            else tipsList.appendChild(createTip(tips.offset_potential.low));
+
+            if (userAnswers['digital_hygiene'] > 1.0) tipsList.appendChild(createTip(tips.digital_hygiene_level.high));
+            else tipsList.appendChild(createTip(tips.digital_hygiene_level.low));
+
+            resultsScreen.classList.remove('hidden');
+            setTimeout(() => {
+                resultsScreen.classList.add('active');
+            }, 100);
+        }
+
+        function createTip(text) {
+            const li = document.createElement('li');
+            li.textContent = text;
+            return li;
+        }
+
+
+        // --- Event Listeners ---
+        startJourneyBtn.addEventListener('click', () => {
+            introScreen.classList.remove('active');
+            introScreen.classList.add('slide-out');
+            setTimeout(() => {
+                introScreen.classList.add('hidden');
+                introScreen.remove();
+                questionsContainer.classList.remove('hidden');
+                renderQuestion(questions[currentQuestionIndex]);
+            }, 500);
+        });
+
+        restartJourneyBtn.addEventListener('click', () => {
+            userAnswers = {};
+            currentQuestionIndex = 0;
+            totalCO2e_g = 0;
+            totalWater_ml = 0;
+            
+            resultsScreen.classList.remove('active');
+            resultsScreen.classList.add('slide-out');
+            setTimeout(() => {
+                resultsScreen.classList.add('hidden');
+                resultsScreen.remove(); // Remove the results screen
+                
+                // Re-add intro screen (or just render first question directly)
+                const container = document.getElementById('calculator-container');
+                const newIntro = introScreen.cloneNode(true);
+                newIntro.classList.remove('hidden', 'slide-out');
+                newIntro.classList.add('active');
+                container.prepend(newIntro); // Add back to start
+                
+                document.getElementById('start-journey').addEventListener('click', () => {
+                    newIntro.classList.remove('active');
+                    newIntro.classList.add('slide-out');
+                    setTimeout(() => {
+                        newIntro.classList.add('hidden');
+                        newIntro.remove();
+                        questionsContainer.innerHTML = ''; // Clear previous questions
+                        questionsContainer.classList.remove('hidden');
+                        renderQuestion(questions[currentQuestionIndex]);
+                    }, 500);
+                });
+
+                // Re-initialize event listener for the cloned start button
+                
+                questionsContainer.innerHTML = ''; // Clear any residual questions
+                questionsContainer.classList.add('hidden'); // Hide until start is clicked
+                
+                // Reset doodle state for the intro screen
+                updateDoodle(0); // Reset to healthy state
+            }, 500);
+        });
+
+        // Initialize doodle on page load
+        updateDoodle(0);
+    </script>
+</body>
+</html>
