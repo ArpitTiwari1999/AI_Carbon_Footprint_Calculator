@@ -13,16 +13,16 @@
         - Animated Transitions (CSS/JS): Smooth fades, slides, and pop-ins for questions, doodle changes, and results.
         - Dynamic Calculation (JS): Real-time calculation based on user input, updating visual state.
         - Carbon/Water Equivalents (HTML/JS): Results presented with relatable real-world comparisons.
-        - LLM-powered Explanation (Gemini API - now static): Provides detailed, personalized explanation of calculation in a modal.
-        - LLM-powered Green Strategy (Gemini API - now static): Generates tailored tips.
-        - Interactive Guide Character (SVG/JS/CSS): A stylized 2D character (simulating 3D with transforms) that stays in the bottom-left corner and offers LLM-powered question explanations on click.
+        - LLM-powered Explanation (Gemini API): Provides detailed, personalized explanation of calculation in a modal.
+        - LLM-powered Green Strategy (Gemini API): Generates tailored tips.
+        - Interactive Guide Character (SVG/JS/CSS): A stylized 2D character (simulating 3D with transforms) that moves with the cursor, transitions with questions, and offers LLM-powered question explanations.
         - CONFIRMATION: NO SVG graphics used for complex charting (only simple doodle and character). NO Mermaid JS used. -->
     <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
             overflow-x: hidden; /* Prevent horizontal scrolling */
-            /* Removed custom cursor to keep default */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%23059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-arrow-right-circle"><circle cx="12" cy="12" r="10"></circle><polyline points="12 16 16 12 12 8"></polyline><line x1="8" y1="12" x2="16" y2="12"></line></svg>') 12 12, auto;
         }
         .container {
             max-width: 100vw;
@@ -182,11 +182,11 @@
         #guide-character-container {
             position: fixed;
             bottom: 20px;
-            left: 20px; /* Fixed to left bottom */
+            right: 20px;
             z-index: 900;
             width: 80px; /* Base size */
             height: 80px;
-            /* Removed transition: transform 0.1s ease-out; for static positioning */
+            transition: transform 0.1s ease-out; /* Smooth movement */
             cursor: pointer;
         }
         #guide-character-info-btn {
@@ -228,7 +228,7 @@
                 width: 60px;
                 height: 60px;
                 bottom: 10px;
-                left: 10px; /* Fixed to left bottom */
+                right: 10px;
             }
             #guide-character-info-btn {
                 width: 20px;
@@ -315,11 +315,11 @@
                 </button>
                 <button id="deep-dive-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                     ✨ Deep Dive Footprint
-                    <!-- <div id="deep-dive-spinner" class="loading-spinner ml-2 hidden"></div> -->
+                    <div id="deep-dive-spinner" class="loading-spinner ml-2 hidden"></div>
                 </button>
                 <button id="green-strategy-btn" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-full shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center">
                     🌿 Green Strategy Spark
-                    <!-- <div id="green-strategy-spinner" class="loading-spinner ml-2 hidden"></div> -->
+                    <div id="green-strategy-spinner" class="loading-spinner ml-2 hidden"></div>
                 </button>
             </div>
             
@@ -580,12 +580,11 @@
         const questionsContainer = document.getElementById('questions-container');
         const resultsScreen = document.getElementById('results-screen');
         const restartJourneyBtn = document.getElementById('restart-journey');
-        const showCalcModalBtn = document.getElementById('show-calc-modal-btn'); 
+        const showCalcModalBtn = document.getElementById('show-calc-modal-btn'); // New button
         const deepDiveBtn = document.getElementById('deep-dive-btn');
         const greenStrategyBtn = document.getElementById('green-strategy-btn');
-        // Spinners are removed as buttons are now static
-        // const deepDiveSpinner = document.getElementById('deep-dive-spinner');
-        // const greenStrategySpinner = document.getElementById('green-strategy-spinner');
+        const deepDiveSpinner = document.getElementById('deep-dive-spinner');
+        const greenStrategySpinner = document.getElementById('green-strategy-spinner');
 
         const sproutStem = document.getElementById('sprout-stem');
         const sproutLeaves = document.querySelectorAll('.sprout-leaf');
@@ -605,7 +604,7 @@
         const waterEquivFlush = document.getElementById('water-equiv-flush');
         const tipsList = document.getElementById('tips-list');
 
-        const infoModal = document.getElementById('info-modal'); 
+        const infoModal = document.getElementById('info-modal'); // Reusing for all modals
         const modalCloseButton = document.getElementById('modal-close-button');
         const modalTitle = document.getElementById('modal-title');
         const modalContentArea = document.getElementById('modal-content-area');
@@ -685,7 +684,7 @@
 
             const questionSection = document.createElement('div');
             questionSection.id = `question-${question.id}`;
-            questionSection.className = 'question-section text-center p-4 md:p-6 lg:p-8 flex-grow overflow-y-auto'; 
+            questionSection.className = 'question-section text-center p-4 md:p-6 lg:p-8 flex-grow overflow-y-auto'; // Added overflow-y-auto
 
             let optionsHtml = '';
             if (question.type === 'choice') {
@@ -879,7 +878,7 @@
             intermediateCalculations.alwaysOn = {
                 co2e: alwaysOnCO2e_g,
                 water: alwaysOnWater_ml,
-                description: `Additional impact from leaving AI-powered apps open when idle (${(aiAlwaysOnAdder*100).toFixed(0)}% of direct usage).`
+                description: `Additional impact from leaving AI-powered apps open when idle (${aiAlwaysOnAdder*100}% of direct usage).`
             };
 
             // 6. Data Center Location Scaling (re-apply to operational CO2e if initial default was used for query, etc.)
@@ -986,41 +985,84 @@
             }, 100);
         }
 
-        // --- Static Modal Content for Deep Dive and Green Strategy ---
-        function showStaticDeepDiveExplanation() {
-            modalTitle.textContent = 'Your Footprint Explained (Static)';
-            modalContentArea.innerHTML = `
-                <p class="mb-4">Here's a general explanation of how your AI footprint is composed, based on common factors:</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Computational Demand:</h4>
-                <p class="text-sm text-stone-600">The more you interact with AI models, especially for complex tasks like image generation or coding, the higher the energy demand. Larger AI models and frequent, iterative prompting significantly increase this demand. Think of it like running a supercomputer for your personal tasks!</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Data Center Energy Mix:</h4>
-                <p class="text-sm text-stone-600">The energy source powering the data centers where AI models run makes a huge difference. If your AI provider uses data centers in regions powered by fossil fuels, your footprint will be higher than if they use renewable energy sources.</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Device Energy Consumption:</h4>
-                <p class="text-sm text-stone-600">Even your own device contributes! High-performance computers consume more electricity than smartphones or tablets. The longer you engage with AI on these devices, the more energy is consumed locally.</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Embodied Carbon:</h4>
-                <p class="text-sm text-stone-600">This is the hidden cost: the emissions generated during the manufacturing and disposal of the powerful hardware (like GPUs) that run AI. Every new piece of hardware carries an environmental burden before it's even switched on.</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Water for Cooling:</h4>
-                <p class="text-sm text-stone-600">Data centers require massive amounts of water for cooling their servers to prevent overheating. As AI compute scales, so does this demand, potentially straining local water resources.</p>
-                <h4 class="font-semibold text-emerald-700 mt-4 mb-2">Offsetting Potential:</h4>
-                <p class="text-sm text-stone-600">While AI has a footprint, it can also *replace* more carbon-intensive activities, such as long-distance travel for meetings or physical prototyping, potentially offering a net positive impact in some cases.</p>
-                <p class="text-sm text-stone-600 mt-4">Your specific answers contribute to the overall estimate. For instance, high daily chatbot usage combined with a fossil-fueled data center location would significantly increase your footprint.</p>
-            `;
-            infoModal.style.display = 'flex';
+        // --- LLM Powered Features ---
+        async function callGeminiAPI(prompt, spinnerElement) {
+            if (spinnerElement) spinnerElement.classList.remove('hidden');
+            let chatHistory = [];
+            chatHistory.push({ role: "user", parts: [{ text: prompt }] });
+            const payload = { contents: chatHistory };
+            const apiKey = ""; // Canvas will provide this at runtime
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error("Gemini API response structure unexpected:", result);
+                    return "Sorry, I couldn't generate a response. Please try again.";
+                }
+            } catch (error) {
+                console.error("Error calling Gemini API:", error);
+                return "An error occurred while connecting to the AI. Please try again later.";
+            } finally {
+                if (spinnerElement) spinnerElement.classList.add('hidden');
+            }
         }
 
-        function showStaticGreenStrategyTips() {
-            tipsList.innerHTML = `
-                <li><strong>Optimize Your Prompts:</strong> Be specific and concise with your AI queries to reduce iterative conversations and unnecessary compute.</li>
-                <li><strong>Choose Green Providers:</strong> If possible, select AI services or cloud providers that prioritize renewable energy for their data centers.</li>
-                <li><strong>Mind Your Model Size:</strong> Use smaller, more specialized AI models when appropriate for your tasks, as they require less energy.</li>
-                <li><strong>Close Unused Apps:</strong> Close AI-powered tabs or applications when you're not actively using them to prevent background energy consumption.</li>
-                <li><strong>Efficient Device Use:</strong> Utilize more energy-efficient devices (e.g., smartphone vs. high-end desktop) for your AI interactions when feasible.</li>
-                <li><strong>General Digital Hygiene:</strong> Practice good digital habits like clearing caches and managing file storage, as these indirectly reduce data center load.</li>
-            `;
+        async function generateFootprintExplanation() {
+            modalTitle.textContent = 'Your Footprint Explained';
+            modalContentArea.innerHTML = '<div class="loading-spinner"></div><p class="text-center mt-4">Generating your personalized footprint analysis...</p>';
+            infoModal.style.display = 'flex'; // Show modal
+
+            const totalCO2e_kg = (totalCO2e_g / KG_TO_G).toFixed(2);
+            const totalWater_L = (totalWater_ml / 1000).toFixed(2);
+
+            let usageDetails = Object.keys(userAnswers).map(key => {
+                const question = questions.find(q => q.id === key);
+                return `- ${question.prompt}: ${getOptionLabel(key, userAnswers[key])}`;
+            }).join('\n');
+
+            const prompt = `Based on the following AI tool usage profile and calculated annual impacts, provide a personalized, engaging, and informative explanation of the user's AI carbon footprint and water consumption. Focus on breaking down what contributed most to their impact and offer insights into why these factors are significant. Keep it concise, professional, and easy to understand.
+
+User's Annual CO2e: ${totalCO2e_kg} kg
+User's Annual Water: ${totalWater_L} L
+
+Usage details:
+${usageDetails}
+`;
+            const response = await callGeminiAPI(prompt, deepDiveSpinner);
+            modalContentArea.innerHTML = response;
         }
 
-        // --- LLM Powered Features (now static/direct calls for Deep Dive/Green Strategy) ---
-        // The generateQuestionInfo function still uses LLM, as it's a specific, controlled use case.
+        async function generateGreenStrategyTips() {
+            tipsList.innerHTML = '<div class="loading-spinner"></div><p class="text-center mt-4">Sparking new green strategies...</p>';
+            
+            let usageDetails = Object.keys(userAnswers).map(key => {
+                const question = questions.find(q => q.id === key);
+                return `- ${question.prompt}: ${getOptionLabel(key, userAnswers[key])}`;
+            }).join('\n');
+
+            const prompt = `Given a user's AI tool usage habits, generate 3-5 actionable and personalized tips to reduce their AI carbon footprint and water consumption. Prioritize tips based on the areas where they likely have the most impact. Consider their current choices and suggest practical changes.
+
+User's AI usage profile:
+${usageDetails}
+
+Format the tips as a concise bulleted list. Each tip should start with a bullet point.`;
+            
+            const response = await callGeminiAPI(prompt, greenStrategySpinner);
+            tipsList.innerHTML = ''; // Clear loading spinner
+            const tipsArray = response.split('\n').filter(tip => tip.trim().startsWith('*') || tip.trim().startsWith('-')).map(tip => tip.replace(/^[\*\-]\s*/, '').trim());
+            tipsArray.forEach(tipText => tipsList.appendChild(createTip(tipText)));
+        }
+
         async function generateQuestionInfo(question) {
             modalTitle.textContent = `About: ${question.prompt}`;
             modalContentArea.innerHTML = '<div class="loading-spinner"></div><p class="text-center mt-4">Getting more info from your guide...</p>';
@@ -1033,16 +1075,19 @@ Options: ${question.options ? question.options.map(o => `${o.label}: ${o.desc}`)
 
 Keep the explanation engaging and easy to understand, as if a friendly expert is talking to the user.`;
 
-            const response = await callGeminiAPI(prompt, null); 
+            const response = await callGeminiAPI(prompt, null); // No dedicated spinner for this small modal
             modalContentArea.innerHTML = response;
         }
 
         function showCalculationExplanation() {
             modalTitle.textContent = 'How Your Footprint is Calculated';
             modalContentArea.innerHTML = `
-                <p class="mb-4">Your annual AI carbon footprint and water consumption are derived from a combination of your answers. Here's a breakdown of how each answer contributed:</p>
+                <p class="mb-4">Your annual AI carbon footprint and water consumption are derived from a combination of your answers. Here's a breakdown:</p>
                 <div class="space-y-4 text-left">
             `;
+
+            let currentCo2e = 0;
+            let currentWater = 0;
 
             const calculationStepsOrder = [
                 'chatbot', 'creative', 'coding', 'device', 'alwaysOn', 'embodiedCarbon', 'activityOffset', 'digitalHygiene'
@@ -1050,85 +1095,34 @@ Keep the explanation engaging and easy to understand, as if a friendly expert is
 
             calculationStepsOrder.forEach(stepKey => {
                 const step = intermediateCalculations[stepKey];
-                if (!step) return; // Skip if no data for this step
+                if (step) {
+                    const stepCo2e = step.co2e || 0;
+                    const stepWater = step.water || 0;
+                    const signCo2e = stepCo2e >= 0 ? '+' : '';
+                    const signWater = stepWater >= 0 ? '+' : '';
 
-                let explanation = '';
-                let co2eContribution = (step.co2e / KG_TO_G).toFixed(3);
-                let waterContribution = (step.water / 1000).toFixed(3);
-                let referenceLink = '';
-                let questionObj = questions.find(q => q.id === stepKey);
-                if (questionObj && questionObj.reference && questionObj.reference.url) {
-                    referenceLink = ` (<a href="${questionObj.reference.url}" target="_blank" class="text-emerald-600 hover:underline">Source</a>)`;
-                } else if (stepKey === 'embodiedCarbon') {
-                    referenceLink = ` (Simplified Allocation, e.g., <a href="https://digitalcommons.morris.umn.edu/cgi/viewcontent.cgi?article=1004&context=urs_2025" target="_blank" class="text-emerald-600 hover:underline">U. of Minnesota</a>)`;
+                    let co2eChangeText = `${signCo2e}${(stepCo2e / KG_TO_G).toFixed(3)} kg CO2e`;
+                    let waterChangeText = `${signWater}${(stepWater / 1000).toFixed(3)} L Water`;
+
+                    if (stepKey === 'digitalHygiene') { // Special case for multiplier
+                        const multiplierVal = questions.find(q => q.id === 'digital_hygiene').get_value(userAnswers['digital_hygiene']);
+                        co2eChangeText = `Multiplied by ${multiplierVal} (from ${step.co2e >= 0 ? 'increase' : 'decrease'})`;
+                        waterChangeText = `Multiplied by ${multiplierVal}`;
+                    } else if (stepKey === 'activityOffset') {
+                         co2eChangeText = `${(stepCo2e / KG_TO_G).toFixed(3)} kg CO2e (Offset)`;
+                         waterChangeText = `N/A for water`;
+                    }
+                    
+                    modalContentArea.innerHTML += `
+                        <div class="bg-stone-50 p-3 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-emerald-700 text-base">${step.description}</h4>
+                            <p class="text-sm text-stone-600 mt-1">
+                                CO2e impact from this step: ${co2eChangeText} <br>
+                                Water impact from this step: ${waterChangeText}
+                            </p>
+                        </div>
+                    `;
                 }
-
-                switch(stepKey) {
-                    case 'chatbot':
-                        explanation = `<strong>Daily Chatbot Usage:</strong> Your selection of <strong>${userAnswers.daily_chatbot_usage}</strong> daily queries (e.g., ${getOptionLabel('daily_chatbot_usage', userAnswers.daily_chatbot_usage)}) with your prompting skill (${getOptionLabel('prompt_engineering_skill', userAnswers.prompt_engineering_skill)}) and preferred model size (${getOptionLabel('ai_model_size', userAnswers.ai_model_size)}) means:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (calculated as ${userAnswers.daily_chatbot_usage} daily queries * ${DEFAULT_QUERY_CO2E_G} g/query * ${userAnswers.ai_model_size} (model size) * ${userAnswers.prompt_engineering_skill} (prompt skill) * 365 days / 1000 g/kg)</li>
-                            <li>Water: ${waterContribution} L/year (calculated as ${userAnswers.daily_chatbot_usage} daily queries * ${DEFAULT_QUERY_WATER_ML} ml/query * ${userAnswers.ai_model_size} (model size) * ${userAnswers.prompt_engineering_skill} (prompt skill) * 365 days / 1000 ml/L)</li>
-                        </ul>`;
-                        break;
-                    case 'creative':
-                        explanation = `<strong>Creative AI Usage:</strong> Your choice of ${getOptionLabel('creative_canvas_usage', userAnswers.creative_canvas_usage)} for creative AI (image/video generation) means:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (calculated as ${userAnswers.creative_canvas_usage} weekly * ${questions[1].question_specific_data.carbon_per_creation_g} g/creation * 365/7 days/week / 1000 g/kg)</li>
-                            <li>Water: ${waterContribution} L/year (calculated as ${userAnswers.creative_canvas_usage} weekly * ${questions[1].question_specific_data.water_per_creation_ml} ml/creation * 365/7 days/week / 1000 ml/L)</li>
-                        </ul>`;
-                        break;
-                    case 'coding':
-                        explanation = `<strong>Coding AI Assistance:</strong> Your use of AI for coding tasks as a ${getOptionLabel('code_alchemist_usage', userAnswers.code_alchemist_usage)} contributes:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (calculated as ${userAnswers.code_alchemist_usage} daily * ${questions[2].question_specific_data.carbon_per_complex_query_g} g/query * 365 days / 1000 g/kg)</li>
-                            <li>Water: ${waterContribution} L/year (calculated as ${userAnswers.code_alchemist_usage} daily * ${questions[2].question_specific_data.water_per_complex_query_ml} ml/query * 365 days / 1000 ml/L)</li>
-                        </ul>`;
-                        break;
-                    case 'device':
-                        explanation = `<strong>Primary Device Use:</strong> Your primary device, a ${getOptionLabel('device_used', userAnswers.device_used)}, used for ${questions[7].question_specific_data.hours_per_day} hours daily, generates:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (calculated as ${userAnswers.device_used} kWh/hr * ${questions[7].question_specific_data.hours_per_day} hrs/day * 365 days * ${userAnswers.data_center_location} kgCO2e/kWh)</li>
-                            <li>Water: ${waterContribution} L/year (Device water consumption is largely indirect and not quantified in this model)</li>
-                        </ul>`;
-                        break;
-                    case 'alwaysOn':
-                        explanation = `<strong>AI Apps Always Open:</strong> Your habit of leaving AI apps open (${(userAnswers.ai_always_on*100).toFixed(0)}% adder) adds:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (calculated as ${userAnswers.ai_always_on} * [Preliminary Annual CO2e])</li>
-                            <li>Water: ${waterContribution} L/year (calculated as ${userAnswers.ai_always_on} * [Preliminary Annual Water])</li>
-                        </ul>`;
-                        break;
-                    case 'embodiedCarbon':
-                        explanation = `<strong>Embodied Carbon:</strong> A fixed annual amount for hardware manufacturing impact:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (${(50 * KG_TO_G) / KG_TO_G} kg fixed)</li>
-                            <li>Water: N/A for this fixed value.</li>
-                        </ul>`;
-                        break;
-                    case 'activityOffset':
-                        explanation = `<strong>Activity Replaced by AI:</strong> Your choice of AI replacing ${getOptionLabel('activity_replaced', userAnswers.activity_replaced)} provides an offset of:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (${userAnswers.activity_replaced} kg fixed)</li>
-                            <li>Water: N/A for this offset.</li>
-                        </ul>`;
-                        break;
-                    case 'digitalHygiene':
-                        explanation = `<strong>Digital Hygiene:</strong> Your overall digital tidiness (${getOptionLabel('digital_hygiene', userAnswers.digital_hygiene)} multiplier) adjusts your total by:`;
-                        explanation += `<ul class="list-disc list-inside ml-4 text-xs">
-                            <li>CO2e: ${co2eContribution} kg/year (applied as a multiplier to previous sum)</li>
-                            <li>Water: ${waterContribution} L/year (applied as a multiplier to previous sum)</li>
-                        </ul>`;
-                        break;
-                    default:
-                        explanation = `<strong>${step.description}</strong>: CO2e: ${co2eContribution} kg/year, Water: ${waterContribution} L/year.`;
-                }
-
-                modalContentArea.innerHTML += `
-                    <div class="bg-stone-50 p-3 rounded-lg shadow-sm">
-                        <h4 class="font-semibold text-emerald-700 text-base mb-1">${explanation} ${referenceLink}</h4>
-                    </div>
-                `;
             });
 
             modalContentArea.innerHTML += `
@@ -1136,38 +1130,40 @@ Keep the explanation engaging and easy to understand, as if a friendly expert is
                     <p>Final Annual CO2e: ${(totalCO2e_g / KG_TO_G).toFixed(2)} kg</p>
                     <p>Final Annual Water: ${(totalWater_ml / 1000).toFixed(2)} L</p>
                 </div>
+                </div>
             `;
             infoModal.style.display = 'flex';
         }
 
         // --- Guide Character Movement ---
-        // Removed mouse tracking and character movement. Character is fixed.
-        // let mouseX = 0;
-        // let mouseY = 0;
-        // let charX = window.innerWidth - 100;
-        // let charY = window.innerHeight - 100;
+        let mouseX = 0;
+        let mouseY = 0;
+        let charX = window.innerWidth - 100; // Start right
+        let charY = window.innerHeight - 100; // Start bottom
 
-        // function animateCharacter() {
-        //     const dx = mouseX - (charX + guideCharacterContainer.offsetWidth / 2);
-        //     const dy = mouseY - (charY + guideCharacterContainer.offsetHeight / 2);
+        function animateCharacter() {
+            const dx = mouseX - (charX + guideCharacterContainer.offsetWidth / 2);
+            const dy = mouseY - (charY + guideCharacterContainer.offsetHeight / 2);
             
-        //     charX += dx * 0.05;
-        //     charY += dy * 0.05;
+            charX += dx * 0.05; // Adjust speed
+            charY += dy * 0.05;
 
-        //     charX = Math.max(20, Math.min(window.innerWidth - guideCharacterContainer.offsetWidth - 20, charX));
-        //     charY = Math.max(20, Math.min(window.innerHeight - guideCharacterContainer.offsetHeight - 20, charY));
+            // Ensure character stays within bounds
+            charX = Math.max(20, Math.min(window.innerWidth - guideCharacterContainer.offsetWidth - 20, charX));
+            charY = Math.max(20, Math.min(window.innerHeight - guideCharacterContainer.offsetHeight - 20, charY));
 
-        //     guideCharacterContainer.style.transform = `translate(${charX - (window.innerWidth - guideCharacterContainer.offsetWidth - 20)}px, ${charY - (window.innerHeight - guideCharacterContainer.offsetHeight - 20)}px) scale(1)`;
+            guideCharacterContainer.style.transform = `translate(${charX - (window.innerWidth - guideCharacterContainer.offsetWidth - 20)}px, ${charY - (window.innerHeight - guideCharacterContainer.offsetHeight - 20)}px) scale(1)`; // Keep original scale logic
             
-        //     requestAnimationFrame(animateCharacter);
-        // }
+            requestAnimationFrame(animateCharacter);
+        }
 
-        // document.addEventListener('mousemove', (e) => {
-        //     mouseX = e.clientX;
-        //     mouseY = e.clientY;
-        // });
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
 
-        // Removed initial call to animateCharacter(); as it's no longer dynamic.
+        // Start animation loop after initial positioning
+        animateCharacter();
 
 
         // --- Event Listeners ---
@@ -1244,9 +1240,9 @@ Keep the explanation engaging and easy to understand, as if a friendly expert is
             }, 500);
         });
 
-        showCalcModalBtn.addEventListener('click', showCalculationExplanation); 
-        deepDiveBtn.addEventListener('click', showStaticDeepDiveExplanation); // Now calls static function
-        greenStrategyBtn.addEventListener('click', showStaticGreenStrategyTips); // Now calls static function
+        showCalcModalBtn.addEventListener('click', showCalculationExplanation); // New button event listener
+        deepDiveBtn.addEventListener('click', generateFootprintExplanation);
+        greenStrategyBtn.addEventListener('click', generateGreenStrategyTips);
 
         modalCloseButton.addEventListener('click', () => infoModal.style.display = 'none');
         window.addEventListener('click', (event) => {
@@ -1260,8 +1256,10 @@ Keep the explanation engaging and easy to understand, as if a friendly expert is
             if (currentQuestionIndex < questions.length) {
                 generateQuestionInfo(questions[currentQuestionIndex]);
             } else {
+                // If on results page, maybe a general info about AI carbon footprint?
+                // For now, let's just make it do nothing or show a "No specific question info here"
                 modalTitle.textContent = "AI Guide Insights";
-                modalContentArea.innerHTML = "<p>I'm here to help with the quiz questions! On the results page, I don't have specific question info, but you can explore the 'How It's Calculated' button or the other insight buttons for more details.</p>";
+                modalContentArea.innerHTML = "<p>I'm here to help with the questions! On the results page, I don't have specific question info, but you can use the 'Deep Dive' or 'Green Strategy' buttons for more insights!</p>";
                 infoModal.style.display = 'flex';
             }
         });
