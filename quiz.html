@@ -181,7 +181,7 @@
         /* Guide Character Styling */
         #guide-character-container {
             position: fixed;
-            bottom: 20px;
+            bottom: 40px;
             left: 20px; /* Fixed to left bottom */
             z-index: 900;
             width: 80px; /* Base size */
@@ -344,27 +344,28 @@
     <!-- Animated Guide Character -->
     <div id="guide-character-container">
         <button id="guide-character-info-btn">i</button>
-        <svg viewBox="0 0 100 100" class="w-full h-full" id="guide-character-svg">
-            <!-- Body -->
+        <img src="./guide-character.png" alt="Guide Character" id="guide-character-img">
+        <!-- <svg viewBox="0 0 100 100" class="w-full h-full" id="guide-character-svg">
+            <!- Body ->
             <rect x="30" y="50" width="40" height="40" rx="10" ry="10" fill="#a8a29e" stroke="#78716c" stroke-width="2"/>
-            <!-- Arms -->
+            <!- Arms ->
             <rect x="20" y="55" width="10" height="20" rx="5" ry="5" fill="#a8a29e" stroke="#78716c" stroke-width="2" transform="rotate(-15 20 55)"/>
             <rect x="70" y="55" width="10" height="20" rx="5" ry="5" fill="#a8a29e" stroke="#78716c" stroke-width="2" transform="rotate(15 80 55)"/>
-            <!-- Head - Animated -->
+            <!- Head - Animated ->
             <g id="character-head">
                 <circle cx="50" cy="35" r="20" fill="#fcd34d" stroke="#d97706" stroke-width="2"/> <!-- Skin tone -->
-                <!-- Hair/Beard - Simplified, inspired by image -->
-                <path d="M40 15 Q50 5 60 15 Q65 25 60 30 Q50 35 40 30 Q35 25 40 15 Z" fill="#4a5568" stroke="#2d3748" stroke-width="1"/> <!-- Top Hair -->
+                <!-- Hair/Beard - Simplified, inspired by image ->
+                <path d="M40 15 Q50 5 60 15 Q65 25 60 30 Q50 35 40 30 Q35 25 40 15 Z" fill="#4a5568" stroke="#2d3748" stroke-width="1"/> <!-- Top Hair ->
                 <path d="M40 45 Q45 55 50 50 Q55 55 60 45 L60 35 L40 35 Z" fill="#4a5568" stroke="#2d3748" stroke-width="1"/> <!-- Beard -->
-                <!-- Eyes -->
+                <!-- Eyes ->
                 <circle cx="43" cy="32" r="3" fill="white" stroke="black" stroke-width="1"/>
                 <circle cx="57" cy="32" r="3" fill="white" stroke="black" stroke-width="1"/>
                 <circle cx="43" cy="32" r="1" fill="black"/>
                 <circle cx="57" cy="32" r="1" fill="black"/>
-                <!-- Mouth (Smiling) -->
+                <!- Mouth (Smiling) ->
                 <path d="M45 40 Q50 45 55 40" stroke="black" stroke-width="1" fill="none"/>
             </g>
-        </svg>
+        </svg> -->
     </div>
 
 
